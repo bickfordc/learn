@@ -1,9 +1,18 @@
 <?php // Example 26-1: functions.php
-  $host        = 'host=localhost'; 
-  $port        = 'port=5432';
-  $dbname      = 'dbname=robin';        
-  $credentials = 'user=postgres password=hpinvent';    
-     
+
+  $dbUrl = getenv('DATABASE_URL');
+  
+  if ($dbUrl) {  
+    $dbOpts = parse_url($dbUrl);
+    $host        = "host=".$dbOpts['host']; 
+    $port        = "port=".$dbOpts['port'];
+    $dbname      = "dbname=".ltrim($dbOpts['path'], '/');        
+    $credentials = "user=".$dbOpts['user']." password=".$dbOpts['pass'];    
+  } else {
+    die("Environment variable DATABASE_URL not found");
+  }
+  
+  
   $appname = "Boosters"; 
 
   $db = pg_connect("$host $port $dbname $credentials");

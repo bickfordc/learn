@@ -20,36 +20,7 @@
   if (!$db) {
       die("Unable to open database : " . pg_last_error());
   } 
-  
-  //$connection = new mysqli($dbhost, $dbuser, $dbpass, $dbname);
-  //if ($connection->connect_error) die($connection->connect_error);
-
-  function createTable($name, $columns)
-  {
-    queryPostgres("CREATE TABLE IF NOT EXISTS $1($2)", array($name, $columns));
-    echo "Table '$name' created or already exists.<br>";
-  }
-
-  function createIndex($table, $columns)
-  {
-      queryPostgres("CREATE INDEX ON $1($2)", array($table, $columns));
-      echo "Index '$table.$columns' created.<br>";
-  }
-//  function queryMysql($query)
-//  {
-//    global $connection;
-//    $result = $connection->query($query);
-//    if (!$result) die($connection->error);
-//    return $result;
-//  }
-
-//  function queryPostgresNoParam($query)
-//  {
-//      $result = pg_query($query);
-//      if (!$result) die (pg_last_error());
-//      return $result;
-//  }
-  
+    
   function queryPostgres($query, $params)
   {
       $result = pg_query_params($query, $params);
@@ -69,13 +40,18 @@
 
   function sanitizeString($var)
   {
-    //global $connection;
     $var = strip_tags($var);
     $var = htmlentities($var);
     return stripslashes($var);
-    //return pg_escape_literal($var);
   }
 
+  function getToken($pw) 
+  {
+      $salt1="35=(%)";
+      $salt2="Git76";    
+      return hash("ripemd128", "$salt1$pw$salt2");
+  }
+  
   function showProfile($user)
   {
     if (file_exists("$user.jpg"))

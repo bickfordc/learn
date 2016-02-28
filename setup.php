@@ -12,8 +12,8 @@
 
   $sql =<<<EOF
     CREATE TABLE IF NOT EXISTS members 
-      (usr varchar(16),
-       pass varchar(16));
+      (usr varchar(32),
+       pass varchar(32));
 EOF;
   
   postgres_query($sql);
@@ -21,8 +21,8 @@ EOF;
   $sql =<<<EOF
     CREATE TABLE IF NOT EXISTS messages 
       (id SERIAL PRIMARY KEY,
-       auth varchar(16),
-       recip varchar(16),
+       auth varchar(32),
+       recip varchar(32),
        pm char(1),
        time timestamp,
        message varchar(4096));
@@ -32,15 +32,15 @@ EOF;
   
   $sql =<<<EOF
     CREATE TABLE IF NOT EXISTS friends 
-      (usr varchar(16),
-       friend varchar(16));
+      (usr varchar(32),
+       friend varchar(32));
 EOF;
 
   postgres_query($sql);
   
   $sql =<<<EOF
     CREATE TABLE IF NOT EXISTS profiles
-      (usr varchar(16),
+      (usr varchar(32),
        text varchar(4096));    
 EOF;
   
@@ -55,25 +55,6 @@ EOF;
     }
   }
   
-//  createTable('members',
-//              'usr varchar(16), pass varchar(16)');
-//              
-//  createTable('messages',
-//              'id SERIAL PRIMARY KEY,
-//              auth varchar(16),
-//              recip varchar(16),
-//              pm char(1),
-//              time timestamp,
-//              message varchar(4096)');
-//  
-//  createTable('friends',
-//              'usr varchar(16),
-//              friend varchar(16)');
-//  
-//  createTable('profiles',
-//              'usr varchar(16),
-//              text varchar(4096)');
-
 ?>
 
     <br>...done.

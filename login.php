@@ -12,8 +12,9 @@
         $error = "Not all fields were entered<br>";
     else
     {
+      $token = getToken($pass);
       $result = queryPostgres("SELECT usr,pass FROM members
-        WHERE usr=$1 AND pass=$2", array($user, $pass));
+        WHERE usr=$1 AND pass=$2", array($user, $token));
 
       if (pg_num_rows($result) == 0)
       {

@@ -11,27 +11,38 @@
   {
     $user     = $_SESSION['user'];
     $loggedin = TRUE;
-    $userstr  = " ($user)";
+    //$userstr  = " ($user)";
   }
   else $loggedin = FALSE;
 
   echo "<title>$appname$userstr</title><link rel='stylesheet' " .
        "href='styles.css' type='text/css'>"                     .
        "</head><body><center><canvas id='logo' width='624' "    .
-       "height='200'>$appname</canvas></center>"                 .
-       //"<center><img id='score' class='noborderimg'></center>" .   
-       "<div class='appname'>$appname$userstr</div>"            .
+       "height='200'>$appname</canvas></center>"                .
+       //"<div class='appname'>$appname$userstr</div>"            .
+       "<script src='http://code.jquery.com/jquery-2.2.1.min.js'></script>" .
        "<script src='javascript.js'></script>";
 
   if ($loggedin)
   {
-    echo "<br ><ul class='menu'>" .
-         "<li><a href='members.php?view=$user'>Home</a></li>" .
-         "<li><a href='members.php'>Members</a></li>"         .
-         "<li><a href='friends.php'>Friends</a></li>"         .
-         "<li><a href='messages.php'>Messages</a></li>"       .
-         "<li><a href='profile.php'>Edit Profile</a></li>"    .
-         "<li><a href='logout.php'>Log out</a></li></ul><br>";
+    echo "<div class='navigation'>" .
+         "<ul class='nav'>"         .
+  	   "<li><a href='members.php?view=$user'>Home</a></li>" .
+           "<li><a href='members.php'>Members</a></li>" .
+           "<li><a href='friends.php'>Friends</a></li>" .
+           "<li><a href='messages.php'>Messages</a></li>" .
+  	   "<li><a href='#'>$user</a>"  .
+  	     "<ul><li><a href='profile.php'>Edit Profile</a></li>" .
+             "<li><a href='logout.php'>Logout</a></li></ul></li>" .
+  	 "</ul>" .
+         "</div>";
+//    echo "<br ><ul class='menu'>" .
+//         "<li><a href='members.php?view=$user'>Home</a></li>" .
+//         "<li><a href='members.php'>Members</a></li>"         .
+//         "<li><a href='friends.php'>Friends</a></li>"         .
+//         "<li><a href='messages.php'>Messages</a></li>"       .
+//         "<li><a href='profile.php'>Edit Profile</a></li>"    .
+//         "<li><a href='logout.php'>Log out</a></li></ul><br>";
   }
   else
   {

@@ -6,7 +6,7 @@
 }
 
 body {
-  width     :700px;
+  width     :800px;
   margin    :20px auto;
   /*background:#f8f8f8;
   border    :1px solid #888; */
@@ -53,8 +53,8 @@ li a:hover, .button:hover {
 .info {
   background :lightgreen;
   color      :blue;
-	border     :1px solid green;
-	padding    :5px 10px;
+  border     :1px solid green;
+  padding    :5px 10px;
   margin-left:40px;
 }
 
@@ -63,12 +63,12 @@ li a:hover, .button:hover {
   padding           :4px 6px;
   border            :1px solid #777;
   background        :#ddd;
-	color             :#d04;
+  color             :#d04;
   margin-right      :8px;
-	border-radius     :5px;
-	-moz-box-shadow   :2px 2px 2px #888;
-	-webkit-box-shadow:2px 2px 2px #888;
-	box-shadow        :2px 2px 2px #888;
+  border-radius     :5px;
+  -moz-box-shadow   :2px 2px 2px #888;
+  -webkit-box-shadow:2px 2px 2px #888;
+  box-shadow        :2px 2px 2px #888;
 }
 
 .subhead {
@@ -95,3 +95,55 @@ li a:hover, .button:hover {
   font-size :97px;
 }
 
+.nav {
+	margin: 0px;
+	padding: 0px;
+	list-style: none;       
+}
+
+.nav li {
+	float: left;
+	width: 160px;
+	position: relative;
+        background: rgba(0,0,0,0.3);
+}
+
+.nav li a {
+	text-decoration: none;
+	color: black;
+	display: block;
+	padding: 7px 8px;
+	/*border-top: 1px solid maroon;*/
+}
+
+.nav li a:hover {
+	color: white;
+}
+
+/*=== submenu ===*/
+
+.nav ul {
+	display: none;
+	position: absolute;
+	margin-left: 0px;
+	list-style: none;
+	padding: 0px;
+}
+
+.nav ul li {
+	width: 160px;
+	float: left;
+}
+
+.nav ul a {
+	display: block;
+	height: 15px;
+	padding: 7px 8px;
+	color: black;
+	text-decoration: none;
+/*	border-bottom: 1px solid maroon;*/
+}
+
+.nav ul li a:hover {
+	color: white;
+}

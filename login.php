@@ -1,6 +1,6 @@
 <?php // Example 26-7: login.php
   require_once 'header.php';
-  echo "<div class='main'><h3>Please enter your details to log in</h3>";
+  //echo "<div class='main'><h3>Please enter your details to log in</h3>";
   $error = $user = $pass = "";
 
   if (isset($_POST['user']))
@@ -23,10 +23,10 @@
       }
       else
       {
+        // Login succeded. Set session wide variables and go to the members page
         $_SESSION['user'] = $user;
         $_SESSION['pass'] = $pass;
-        die("You are now logged in. Please <a href='members.php?view=$user'>" .
-            "click here</a> to continue.<br><br>");
+        header("Location: members.php?view=$user");
       }
     }
   }

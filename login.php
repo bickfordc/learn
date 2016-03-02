@@ -32,17 +32,29 @@
   }
 
   echo <<<_END
-    <form method='post' action='login.php'>$error
-    <span class='fieldname'>Username</span><input type='text'
-      maxlength='16' name='user' value='$user'><br>
-    <span class='fieldname'>Password</span><input type='password'
-      maxlength='16' name='pass' value='$pass'>
+    <div class="login-page">
+     <div class="form">
+      <form class="login-form" method='post' action='login.php'>$error
+       <input type="text" placeholder="email" name='user' value='$user'/>
+       <input type="password" placeholder="password" name='pass' value='$pass'/>
+       <button>login</button>
+       <p class="message"><a href="#">I forgot my password</a></p>
+      </form>
+     </div>
+    </div>
 _END;
+//    <form method='post' action='login.php'>$error
+//    <span class='fieldname'>Username</span><input type='text'
+//      maxlength='16' name='user' value='$user'><br>
+//    <span class='fieldname'>Password</span><input type='password'
+//      maxlength='16' name='pass' value='$pass'>
+//_END;
 ?>
 
-    <br>
+<!--    <br>
     <span class='fieldname'>&nbsp;</span>
     <input type='submit' value='Login'>
-    </form><br></div>
+    </form>-->
+    <br></div>
   </body>
 </html>

@@ -3,7 +3,7 @@
 
   echo <<<_END
   <script>
-    function checkUser(user)
+    function userExists(user)
     {
       if (user.value == '')
       {
@@ -13,7 +13,7 @@
 
       params  = "user=" + user.value
       request = new ajaxRequest()
-      request.open("POST", "checkuser.php", true)
+      request.open("POST", "userExists.php", true)
       request.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
       request.setRequestHeader("Content-length", params.length)
       request.setRequestHeader("Connection", "close")
@@ -22,8 +22,11 @@
       {
         if (this.readyState == 4)
           if (this.status == 200)
-            if (this.responseText != null)
-              O('info').innerHTML = this.responseText
+            if (this.responseText == "true") {
+              O('info').innerHTML = "<span class='taken'>&nbsp;&#x2718; This username is taken</span>"
+            } else {
+              O('info').innerHTML = "<span class='available'>&nbsp;&#x2714; This username is available</span>"
+            }
       }
       request.send(params)
     }
@@ -73,7 +76,7 @@ _END;
     <form method='post' action='signup.php'>$error
     <span class='fieldname'>Username</span>
     <input type='text' maxlength='32' name='user' value='$user'
-      onBlur='checkUser(this)'><span id='info'></span><br>
+      onBlur='userExists(this)'><span id='info'></span><br>
     <span class='fieldname'>Password</span>
     <input type='text' maxlength='32' name='pass'
       value='$pass'><br>

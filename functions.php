@@ -1,4 +1,4 @@
-<?php // Example 26-1: functions.php
+<?php
 
   $dbUrl = getenv('DATABASE_URL');
   

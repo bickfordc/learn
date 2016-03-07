@@ -24,7 +24,7 @@
         $mail->Password = 'wizardsofwindsor';
         $mail->setFrom('wmbgrocerycards@gmail.com', 'Grocery Cards');
         //$mail->addReplyTo($address)
-        $mail->addAddress('carltonbickford@gmail.com', 'Carlton Bickford');
+        $mail->addAddress($email);
         $mail->Subject = 'Testing 1,2,3...';
         $mail->isHTML(false);
         //$mail->msgHTML(file_get_contents('monthlymail.html'));

@@ -1,6 +1,6 @@
-<?php // Example 26-7: login.php
+<?php 
   require_once 'header.php';
-  //echo "<div class='main'><h3>Please enter your details to log in</h3>";
+ 
   $error = $user = $pass = "";
 
   if (isset($_POST['user']))

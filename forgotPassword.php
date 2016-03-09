@@ -21,7 +21,7 @@
         $mail->SMTPSecure = 'tls';
         $mail->SMTPAuth = true;
         $mail->Username = 'wmbgrocerycards@gmail.com';
-        $mail->Password = 'wizardsofwindsor';
+        $mail->Password = '----';
         $mail->setFrom('wmbgrocerycards@gmail.com', 'Grocery Cards');
         //$mail->addReplyTo($address)
         $mail->addAddress($email);

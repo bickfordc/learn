@@ -14,15 +14,15 @@
         
         $mail = new PHPMailer;
         $mail->isSMTP();
-        $mail->SMTPDebug = 0; // 2
+        $mail->SMTPDebug = 2; // 2
         $mail->Debugoutput = 'html';
         $mail->Host = 'smtp.gmail.com';
         $mail->Port = 587;
         $mail->SMTPSecure = 'tls';
         $mail->SMTPAuth = true;
-        $mail->Username = 'wmbgrocerycards@gmail.com';
-        $mail->Password = '----';
-        $mail->setFrom('wmbgrocerycards@gmail.com', 'Grocery Cards');
+        $mail->Username = getenv('MB_EMAIL');
+        $mail->Password = getenv('MB_EMAIL_PW');
+        $mail->setFrom($mail->Username, 'Grocery Cards');
         //$mail->addReplyTo($address)
         $mail->addAddress($email);
         $mail->Subject = 'Testing 1,2,3...';

@@ -46,6 +46,15 @@ EOF;
   
   postgres_query($sql);
   
+    $sql =<<<EOF
+    CREATE TABLE IF NOT EXISTS reset_requests
+      (code char(6) PRIMARY KEY,
+       usr varchar(32),
+       expiration timestamp);    
+EOF;
+  
+    postgres_query($sql);
+    
   function postgres_query($sql) {
     $ret = pg_query($sql);
     if(!$ret){

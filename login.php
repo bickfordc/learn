@@ -25,7 +25,7 @@
       {
         // Login succeded. Set session wide variables and go to the members page
         $_SESSION['user'] = $user;
-        $_SESSION['pass'] = $pass;
+        $_SESSION['userToken'] = $token;
         header("Location: members.php?view=$user");
       }
     }

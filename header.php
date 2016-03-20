@@ -18,7 +18,7 @@
        "href='styles.css' type='text/css'>"                     .
        "</head><body><center><canvas id='logo' width='624' "    .
        "height='200'>$appname</canvas></center>"                .
-       "<script src='http://code.jquery.com/jquery-2.2.1.min.js'></script>" .
+       "<script src='https://code.jquery.com/jquery-2.2.1.min.js'></script>" .
        "<script src='javascript.js'></script>";
 
   if ($loggedin)

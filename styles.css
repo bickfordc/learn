@@ -74,6 +74,11 @@ li a:hover, .button:hover {
   font-weight:bold;
 }
 
+.diag {
+    text-align: center;
+    margin-top: 100px;
+}
+
 .taken, .error {
   color:red;
 }

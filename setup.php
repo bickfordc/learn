@@ -49,10 +49,31 @@ EOF;
     $sql =<<<EOF
     CREATE TABLE IF NOT EXISTS reset_requests
       (code char(6) PRIMARY KEY,
-       usr varchar(32),
-       expiration timestamp);    
+       usr varchar(32) NOT NULL,
+       expiration timestamp NOT NULL DEFAULt NOW());    
 EOF;
   
+    postgres_query($sql);
+    
+    $sql =<<<EOF
+    CREATE OR REPLACE FUNCTION delete_old_reset_requests() RETURNS trigger
+      LANGUAGE plpgsql
+      AS $$
+      BEGIN
+        DELETE FROM reset_requests WHERE expiration < NOW() - INTERVAL '1 minute';
+        RETURN NEW;
+      END;
+      $$;
+EOF;
+    
+    postgres_query($sql);
+    
+    $sql =<<<EOF
+    CREATE TRIGGER delete_old_reset_requests_trigger 
+      AFTER INSERT ON reset_requests
+      EXECUTE PROCEDURE delete_old_reset_requests();
+EOF;
+    
     postgres_query($sql);
     
   function postgres_query($sql) {

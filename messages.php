@@ -52,7 +52,7 @@ _END;
     
     for ($j = 0 ; $j < $num ; ++$j)
     {
-      $row = pg_fetch_array($result);
+      INTO
 
       if ($row['pm'] == 0 || $row['auth'] == $user || $row['recip'] == $user)
       {

@@ -31,10 +31,15 @@
     }
   }
 
+  // May have arrived here due to a password reset or change. 
+  // If so, the query string will have a message to be displayed.
+  $msg = $_GET['msg'];
+
   echo <<<_END
     <div class="login-page">
      <div class="form">
       <form class="login-form" method='post' action='login.php'>$error
+       <p>$msg</p>
        <input type="text" placeholder="email" name='user' value='$user'/>
        <input type="password" placeholder="password" name='pass' value='$pass'/>
        <button>login</button>

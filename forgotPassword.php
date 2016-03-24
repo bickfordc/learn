@@ -23,14 +23,15 @@
         $mail->Username = getenv('MB_EMAIL');
         $mail->Password = getenv('MB_EMAIL_PW');
         $mail->setFrom($mail->Username, 'Grocery Cards');
-        $mail->addReplyTo("Do not reply");
+        //$mail->addReplyTo("Do not reply");
         $mail->addAddress($email);
         $mail->Subject = 'Password reset request';
         
         $resetCode = genResetCode();
-        $mail->Body = getHtmlMessage($resetCode, $email);      
+        $targetUrl = getTargetUrl($resetCode, $email);
+        $mail->Body = genHtmlMessage($targetUrl);      
         $mail->isHTML(true);
-        $mail->AltBody = genPlainTextMessage($resetCode, $email);
+        $mail->AltBody = genPlainTextMessage($targetUrl);
         
         storeResetRequest($resetCode, $email);
         
@@ -45,28 +46,32 @@
     }
     
   }
-   
-  function getHtmlMessage($resetCode, $email)
+
+  function getTargetUrl($resetCode, $email) 
   {
-      $link = "http://localhost/robinpostgres/resetPassword.php?code=$resetCode&user=$email";
-      
-      $msg = "<!DOCTYPE html>\n<html><head></head><body>" .
-             "<p>You have asked to reset your password at Windsor Music Boosters " .
+      $url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+      $subUrl = substr($url, 0, strrpos($url, '/') + 1);
+
+      return $subUrl . "changePassword.php?code=$resetCode&user=$email";
+  }
+  
+  function genHtmlMessage($targetUrl)
+  {   
+      $msg = "<!DOCTYPE html><html><head></head><body>" .
+             "<p>We received a request to reset your password at Windsor Music Boosters " .
              "Grocery Card Management site. Please follow the link below to continue.</p>" .
-             "<a href='$link'>$link</a>" .
-             "<p>The link will be valid for 24 hours.</p>" .
+             "<a href='$targetUrl'>$targetUrl</a>" .
+             "<p>The link is for one time use only and will expire after 20 minutes.</p>" .
              "</body></html>";
       
       return $msg;
   }
   
-  function genPlainTextMessage($resetCode, $email)
-  {
-      $link = "http://localhost/robinpostgres/resetPassword.php?code=$resetCode&user=$email";
-      
-      $msg = "You have asked to reset your password at Windsor Music Boosters " .
+  function genPlainTextMessage($targetUrl)
+  {   
+      $msg = "We received a request to reset your password at Windsor Music Boosters " .
              "Grocery Card Management site. Please follow the link below to continue.\n\n" .
-             $link . "\n\nThe link will be valid for 24 hours.";
+             $targetUrl . "\n\nThe link is for one time use only and will expire after 20 minutes.";
       
       return $msg;
   }
@@ -75,7 +80,7 @@
   {
       $chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
       $charsLen = strlen($chars);
-      $codeLen = 6;  // TODO increase this;
+      $codeLen = 6; 
       
       $code = "";
       for ($i = 0; $i < $codeLen; $i++)

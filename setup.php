@@ -50,7 +50,7 @@ EOF;
     CREATE TABLE IF NOT EXISTS reset_requests
       (code char(6) PRIMARY KEY,
        usr varchar(32) NOT NULL,
-       expiration timestamp NOT NULL DEFAULt NOW());    
+       expiration timestamp NOT NULL DEFAULT NOW() + INTERVAL '20 minutes');    
 EOF;
   
     postgres_query($sql);
@@ -60,7 +60,7 @@ EOF;
       LANGUAGE plpgsql
       AS $$
       BEGIN
-        DELETE FROM reset_requests WHERE expiration < NOW() - INTERVAL '1 minute';
+        DELETE FROM reset_requests WHERE expiration < NOW();
         RETURN NEW;
       END;
       $$;

@@ -52,8 +52,6 @@ _END;
     
     for ($j = 0 ; $j < $num ; ++$j)
     {
-      INTO
-
       if ($row['pm'] == 0 || $row['auth'] == $user || $row['recip'] == $user)
       {
         //echo date(DATE_RFC2822, $row['time']);

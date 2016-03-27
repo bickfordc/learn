@@ -43,7 +43,7 @@
        <input type="text" placeholder="email" name='user' value='$user'/>
        <input type="password" placeholder="password" name='pass' value='$pass'/>
        <button>login</button>
-       <p class="message"><a href="forgotPassword.php">I forgot my password</a></p>
+       <p class="message"><a href="forgotPassword.php">Forgot password?</a></p>
       </form>
      </div>
     </div>

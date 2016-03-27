@@ -1,5 +1,7 @@
 <?php
 
+  date_default_timezone_set("America/Denver");
+
   $dbUrl = getenv('DATABASE_URL');
   
   if ($dbUrl) {  
@@ -65,4 +67,27 @@
       echo stripslashes($row['text']) . "<br style='clear:left;'><br>";
     }
   }
+  
+    function validateAndChangePassword($user, $newPw1, $newPw2, &$error)
+    {
+        $passwordChanged = false;
+        
+        if ($newPw1 != $newPw2)
+        {
+            $error = "Passwords do not match.";
+        }
+        else if (strLen($newPw1) < 8)
+        {
+            $error = "New password must be at least 8 characters.";
+        }
+        else
+        {
+            queryPostgres("UPDATE members SET pass=$1 WHERE usr=$2",
+               array(getToken($newPw1), $user));
+
+            $passwordChanged = true;
+        }
+        
+        return $passwordChanged;
+    }
 ?>

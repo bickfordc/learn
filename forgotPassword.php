@@ -5,16 +5,17 @@
   if (isset($_POST['email']))
   {
     $email = sanitizeString($_POST['email']);
-    
-    $result = queryPostgres("SELECT * FROM members WHERE usr=$1", array($email));
-
-    if (pg_num_rows($result)) {
+             
+    $resetCode = genResetCode();
         
+    // Store request and send email only if user with that email exists.
+    if (storeResetRequest($resetCode, $email))
+    {
         require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
         
         $mail = new PHPMailer;
         $mail->isSMTP();
-        $mail->SMTPDebug = 2; // 2
+        $mail->SMTPDebug = 0; // 0 for production, 2 for debug
         $mail->Debugoutput = 'html';
         $mail->Host = 'smtp.gmail.com';
         $mail->Port = 587;
@@ -23,28 +24,17 @@
         $mail->Username = getenv('MB_EMAIL');
         $mail->Password = getenv('MB_EMAIL_PW');
         $mail->setFrom($mail->Username, 'Grocery Cards');
-        //$mail->addReplyTo("Do not reply");
         $mail->addAddress($email);
         $mail->Subject = 'Password reset request';
-        
-        $resetCode = genResetCode();
-        $targetUrl = getTargetUrl($resetCode, $email);
-        $mail->Body = genHtmlMessage($targetUrl);      
-        $mail->isHTML(true);
-        $mail->AltBody = genPlainTextMessage($targetUrl);
-        
-        storeResetRequest($resetCode, $email);
-        
-        if (!$mail->send()) {
+        $mail->Body = genPlainTextMessage($resetCode);
+            
+        if (!$mail->send()) 
+        {
             echo "Mailer Error: " . $mail->ErrorInfo;
-        } else {
-            echo "Message sent!";
-        }
-        
-    } else {
-        $error = "<span class='error'>That email does not belong to a registered user.</span><br>";
+        } 
     }
-    
+    // Go to next page regardless. Give no indication of whether the user exists.  
+    header("Location: resetPassword.php?email=$email");
   }
 
   function getTargetUrl($resetCode, $email) 
@@ -67,20 +57,21 @@
       return $msg;
   }
   
-  function genPlainTextMessage($targetUrl)
+  function genPlainTextMessage($resetCode)
   {   
       $msg = "We received a request to reset your password at Windsor Music Boosters " .
-             "Grocery Card Management site. Please follow the link below to continue.\n\n" .
-             $targetUrl . "\n\nThe link is for one time use only and will expire after 20 minutes.";
+             "Grocery Card Management site. Please use the following code.\n" .
+             "The code is for one time use only and will expire after 20 minutes.\n\n\t" .
+             $resetCode;
       
       return $msg;
   }
   
   function genResetCode() 
   {
-      $chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      $chars = "ABCDEFGHIJKLMNPQRSTUVWXYZ123456789";
       $charsLen = strlen($chars);
-      $codeLen = 6; 
+      $codeLen = 8; 
       
       $code = "";
       for ($i = 0; $i < $codeLen; $i++)
@@ -93,14 +84,33 @@
   
   function storeResetRequest($resetCode, $email)
   {
-      queryPostgres("INSERT INTO reset_requests (code, usr) VALUES($1, $2)", array($resetCode, $email));
+      $userExists = false;
+      
+      // Do we have a user with that email?
+      $result = queryPostgres("SELECT * FROM members WHERE usr=$1", array($email));
+      if (pg_num_rows($result) > 0) 
+      { 
+        // Yes. Add the request to the database.
+        // A row added to this table automatically gets an expiration 20 minutes from now.
+        // It also triggers deletion of any expired rows.
+        queryPostgres("INSERT INTO reset_requests (code, usr) VALUES($1, $2)", array($resetCode, $email));
+        
+        // Store the requesting email address in a session variable
+        // so we can validate later when they enter the reset code.
+        $_SESSION["userRequestingReset"] = $email;
+        
+        $userExists = true;
+      }
+      
+      return $userExists;
   }
   
   echo <<<_END
+    <p class='pageMessage'>Enter the email address used as your account on this site.<br>
+    A message with a reset code will be sent to the email address.</p>
     <div class="forgot-page">
       <div class="form">
        <form id='emailForm' class='login-form' method='post' action='forgotPassword.php'>
-        <p>A reset code will be sent to your email address.</p>
         <div id='info'>$error</div>
         <input id='email' type="text" placeholder="email" name='email' value='$email'/>
         <button type='submit' id='send'>Send</button>

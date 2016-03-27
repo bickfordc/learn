@@ -78,59 +78,12 @@
         }
     }    
 
-    function isValidResetRequest($resetCode, $user)
-    {
-        $isValidRequest = false;
-        
-        $result = queryPostgres(
-            "SELECT code, expiration, usr FROM reset_requests WHERE code=$1 AND usr=$2",
-            array($resetCode, $user));
-        
-        if (pg_num_rows($result) > 0) 
-        {
-            $row = pg_fetch_array($result);
-            
-            //date_default_timezone_set('UTC');  // This will affect the next statement...
-            $requestExpiration = strtotime($row['expiration']);  // ...making it UTC
-            
-            $now = time();  // This is UTC
-            if ($now < $requestExpiration)
-            {
-                $isValidRequest = true;
-            }
-        }
-        
-        if (!$isValidRequest)
-        {
-          echo "<div class=diag>Invalid request. " .
-               "Click <a href='forgotPassword.php'>here</a> to reset your password.</div>";   
-        }
-        
-        return $isValidRequest;
-    }
+
     
-    function validateAndChangePassword($user, $newPw1, $newPw2, &$error)
-    {
-        if ($newPw1 != $newPw2)
-        {
-            $error = "Passwords do not match.";
-        }
-        else if (strLen($newPw1) < 8)
-        {
-            $error = "New password must be at least 8 characters.";
-        }
-        else
-        {
-            $result = queryPostgres("UPDATE members SET pass=$1 WHERE usr=$2",
-               array(getToken($newPw1), $user));
-            
-            destroySession();
-            header("Location: login.php?msg=Password change was successful. Please login with your new password.");
-        }
-    }
+
     
     echo <<<_END
-    <script src='validate.js'></script>
+    <script src='passwordMatch.js'></script>
     <div class="reset-page">
       <div class="form">
        <form id='resetForm' class='reset-form' method='post' action='changePassword.php'>

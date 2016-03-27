@@ -48,7 +48,7 @@ EOF;
   
     $sql =<<<EOF
     CREATE TABLE IF NOT EXISTS reset_requests
-      (code char(6) PRIMARY KEY,
+      (code char(8) PRIMARY KEY,
        usr varchar(32) NOT NULL,
        expiration timestamp NOT NULL DEFAULT NOW() + INTERVAL '20 minutes');    
 EOF;

@@ -18,8 +18,7 @@
 
       if (pg_num_rows($result) == 0)
       {
-        $error = "<span class='error'>Username/Password
-                  invalid</span><br><br>";
+        $error = "<span class='error'>Invalid username/password</span><br><br>";
       }
       else
       {
@@ -33,17 +32,20 @@
 
   // May have arrived here due to a password reset or change. 
   // If so, the query string will have a message to be displayed.
-  $msg = $_GET['msg'];
-
+  if (isset($_GET['msg']))
+  {
+      $msg = $_GET['msg'];
+      echo "<div class='pageMessage'>$msg</div>";
+  }
+  
   echo <<<_END
-    <div class="login-page">
-     <div class="form">
-      <form class="login-form" method='post' action='login.php'>$error
-       <p>$msg</p>
-       <input type="text" placeholder="email" name='user' value='$user'/>
-       <input type="password" placeholder="password" name='pass' value='$pass'/>
+    <div>
+     <div class='form'>
+      <form class='login-form' method='post' action='login.php'>$error
+       <input type='text' placeholder='email' name='user' value='$user'/>
+       <input type='password' placeholder='password' name='pass' value='$pass'/>
        <button>login</button>
-       <p class="message"><a href="forgotPassword.php">Forgot password?</a></p>
+       <p class='message'><a href='forgotPassword.php'>Forgot password?</a></p>
       </form>
      </div>
     </div>

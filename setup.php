@@ -76,6 +76,43 @@ EOF;
     
     postgres_query($sql);
     
+    $sql =<<<EOF
+    CREATE TABLE IF NOT EXISTS students
+      (id SERIAL PRIMARY KEY,
+       first varchar(32),
+       last varchar(32) NOT NULL,
+       email varchar(80),
+       active boolean DEFAULT TRUE
+      );
+EOF;
+    
+    postgres_query($sql);
+    
+    $sql =<<<EOF
+    CREATE TABLE IF NOT EXISTS cards
+      (id varchar(20) PRIMARY KEY,
+       sold boolean DEFAULT FALSE,
+       card_holder varchar(80),
+       notes varchar(80),
+       active boolean DEFAULT TRUE
+      );
+       
+EOF;
+    
+    postgres_query($sql);
+            
+    $sql =<<<EOF
+    CREATE TABLE IF NOT EXISTS student_cards
+      (student integer REFERENCES students (id),
+       card varchar(20) REFERENCES cards (id),
+       PRIMARY KEY (student, card)
+      );
+            
+EOF;
+    
+    postgres_query($sql);
+    
+    
   function postgres_query($sql) {
     $ret = pg_query($sql);
     if(!$ret){

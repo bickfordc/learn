@@ -22,10 +22,10 @@
       }
       else
       {
-        // Login succeded. Set session wide variables and go to the members page
+        // Login succeded. Set session wide variables and go to the index page
         $_SESSION['user'] = $user;
         $_SESSION['userToken'] = $token;
-        header("Location: members.php?view=$user");
+        header("Location: index.php");
       }
     }
   }

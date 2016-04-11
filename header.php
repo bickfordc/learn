@@ -25,12 +25,17 @@
   {
     echo "<div class='navigation'>" .
          "<ul class='nav'>"         .
-  	   "<li><a href='members.php?view=$user'>Home</a></li>" .
-           "<li><a href='members.php'>Members</a></li>" .
-           "<li><a href='friends.php'>Friends</a></li>" .
-           "<li><a href='messages.php'>Messages</a></li>" .
-  	   "<li><a href='#'>$user</a>"  .
-  	     "<ul><li><a href='profile.php'>Edit Profile</a></li>" .
+  	   "<li><a href='index.php'>Cards</a>" .
+             "<ul><li><a href='#'>Add new unsold cards</a></li>" .
+             "<li><a href='#'>Sell cards to students</a></li>" .
+             "<li><a href='reloads.php'>Record monthly card reloads</a></li>" .
+             "<li><a href='#'>Edit cards</a></li>" .
+             "</ul></li>" .
+           "<li><a href='index.php'>Students</a>" .
+             "<ul><li><a href='#'>Edit students</a></li>" .
+             "</ul></li>" .
+  	   "<li style='float: right'><a href='#'>$user</a>"  .
+  	     "<ul><li><a href='#'>Edit Profile</a></li>" .
              "<li><a href='changePassword.php'>Change Password</a></li>" .
              "<li><a href='logout.php'>Logout</a></li></ul></li>" .
   	 "</ul>" .

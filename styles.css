@@ -52,10 +52,15 @@ li a:hover, .button:hover {
   font-weight:bold;
 }
 
-.pageMessage {
+/*.pageMessage {
     text-align: center;
     margin: 100px auto;
     max-width: 900px;
+}*/
+
+.pageMessage {
+    display: table;
+    margin: 100px auto;
 }
 
 .taken, .error {

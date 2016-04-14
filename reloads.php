@@ -9,17 +9,19 @@
         //print_r($_FILES);
         
         $names = array();
+        $tmpNames = array();
         $types = array();
         $messages = array();
         $uploadError = false;
         
-        for ($i = 0; $i <= 1; $i++) 
+        for ($i = 0; $i <= 0; $i++) // no safeway.  change to <= 1 later
         {
             $messages[$i] = "OK";
             if ($_FILES['file']['error'][$i] === UPLOAD_ERR_OK)
             {
-                $names[$i] = $_FILES['file']['name'][$i];
-                $types[$i] = $_FILES['file']['type'][$i];
+                $names[$i]    = $_FILES['file']['name'][$i];
+                $tmpNames[$i] = $_FILES['file']['tmp_name'][$i];
+                $types[$i]    = $_FILES['file']['type'][$i];
                 if ($types[$i] != "text/csv" && $types[$i] != "application/vnd.ms-excel")
                 {
                     $messages[$i] = "The file type was $types[$i], not text/csv.";
@@ -27,7 +29,7 @@
                 }
                 if (!$uploadError && $i == 0)
                 {
-                    if (!validateKingSoopers($_FILES['file']['tmp_name'][$i]))
+                    if (!validateKingSoopers($tmpNames[$i]))
                     {
                         $messages[$i] = "This does not appear to be a King Soopers statement.";
                         $uploadError = true;
@@ -35,7 +37,7 @@
                 }
                 if (!$uploadError && $i == 1)
                 {
-                    if (!validateSafeway($_FILES['file']['tmp_name'][$i]))
+                    if (!validateSafeway($tmpNames[$i]))
                     {
                         $messages[$i] = "This does not appear to be a Safeway statement.";
                         $uploadError = true;
@@ -57,7 +59,12 @@
         }
         else
         {
-            // process the files
+            $kingSoopersCardTotals = array();
+            processKingSoopers($tmpNames[0], $kingSoopersCardTotals);
+            
+            print_r($kingSoopersCardTotals);
+            
+            processSafeway($tmpNames[1]);
         }
         
         //move_uploaded_file($_FILES['file1']['tmp_name'], $name1);    
@@ -112,6 +119,74 @@
         }
        
         return $isValid;
+    }
+    
+    function processKingSoopers($tmpName, &$cardTotals)
+    {
+        if (($file = fopen($tmpName, "r")) !== false)
+        {
+            $line = 0;
+            while(($row = fgetcsv($file, 300, ",")) !== false)
+            {
+                if (++$line < 3)
+                {
+                    // 3rd line is start of real data
+                    continue;
+                }
+                $transactDate = $row[0];
+                $cardNumber = $row[1];
+                if ($cardNumber == "")
+                {
+                    // Ignore any line without a card number
+                    continue;
+                }
+                $amount = handleCurrency($row[5]);
+                $cardTotals[$cardNumber] += $amount;
+            }     
+        }
+    }
+    
+    function processSafeway($tmpName)
+    {
+        
+    }
+    
+    function getCardOwners($cardTotals, &$cardOwners)
+    {
+        $numCards = count($cardTotals);
+        foreach ($cardTotals as $key => $val)
+        {
+            // is the card sold?
+            $card = queryPostgres("SELECT * FROM cards where id=$1", array($key)
+            $cardOwners[$key] = 2;
+        }
+    }
+    
+    // ($150.75) => -150.75
+    // $20       => 20
+    // $1,100.25 => 1100.25
+    //
+    function handleCurrency($moneyString)
+    {
+        $isNegative = false;
+        
+        if (substr($moneyString, 0, 1) == "(")
+        {
+            $isNegative = true;
+        }
+        
+        // strip off parens and $ from ends
+        $moneyString = trim($moneyString, "($)");
+        
+        // strip out commas
+        $amount = str_replace(",", "", $moneyString);
+        
+        if ($isNegative)
+        {
+            $amount *= -1.00;
+        }
+        
+        return $amount;
     }
     
     echo <<<_END

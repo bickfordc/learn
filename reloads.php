@@ -4,6 +4,8 @@
 
     if (!$loggedin) die();
 
+    $fatalError = false;
+    
     if ($_FILES)  
     {   
         //print_r($_FILES);
@@ -14,7 +16,7 @@
         $messages = array();
         $uploadError = false;
         
-        for ($i = 0; $i <= 0; $i++) // no safeway.  change to <= 1 later
+        for ($i = 0; $i <= 1; $i++) 
         {
             $messages[$i] = "OK";
             if ($_FILES['file']['error'][$i] === UPLOAD_ERR_OK)
@@ -59,12 +61,35 @@
         }
         else
         {
-            $kingSoopersCardTotals = array();
-            processKingSoopers($tmpNames[0], $kingSoopersCardTotals);
+            $ksCardTotals = processKingSoopers($tmpNames[0]);
+            $ksCardsNotFound = array();
+            $ksCardData = getCardData($ksCardTotals, $ksCardsNotFound);
+           
+            //print_r($ksCardData);
+            genStudentReport($ksCardData, NULL, NULL);
             
-            print_r($kingSoopersCardTotals);
+            $swCardTotals = processSafeway($tmpNames[1]);
+            $swCardsNotFound = array();
+            $swCardData = getCardData($swCardTotals, $swCardsNotFound);
             
-            processSafeway($tmpNames[1]);
+            $cardsNotFound = array_merge($ksCardsNotFound, $swCardsNotFound);
+            if (count($cardsNotFound > 0))
+            {
+                $pageMsg = "The following grocery cards were not found:<br>";
+                foreach ($cardsNotFound as $val)
+                {
+                    $pageMsg .= $val . "<br>";
+                }
+            }
+            
+            // This will yield array elements like scripTotals['Carlton Bickford'] => 10.50
+            //$scripTotals = processScrip($tmpNames[2]); 
+            // Scrip student families not in the scrip_student table
+            //$studentFamiliesNotFound = array(); 
+            // ScripData records (indexed by studentFamily) include fields total, studentId
+            //$scripData = getScripData($scripTotals, $studentFamiliesNotFound);
+            
+            
         }
         
         //move_uploaded_file($_FILES['file1']['tmp_name'], $name1);    
@@ -121,8 +146,9 @@
         return $isValid;
     }
     
-    function processKingSoopers($tmpName, &$cardTotals)
+    function processKingSoopers($tmpName)
     {
+        $cardTotals = array();
         if (($file = fopen($tmpName, "r")) !== false)
         {
             $line = 0;
@@ -144,21 +170,139 @@
                 $cardTotals[$cardNumber] += $amount;
             }     
         }
+        else
+        {
+            $pageMsg = "Could not open file $tmpName";
+        }
+        return $cardTotals;
+        
     }
     
     function processSafeway($tmpName)
     {
+        $cardTotals = array();
+        
+        return $cardTotals;
+    }
+    
+    // build an array of students. Each student has an array of cards.
+    // each card has a total.
+    // idea for later.  student_scripfamily table. Each student may have multiple scrip families.
+    function getCardData($cardTotals, &$cardsNotFound)
+    {
+        $cards = array();
+        $cardData = array();
+        $notFoundCount = 0;
+        $i = 0;
+        foreach ($cardTotals as $key => $val)
+        {
+            // Add logic here to recognize safeway card and add space.
+            $result = queryPostgres("SELECT * FROM cards where id=$1", array($key));
+            if (pg_num_rows($result) == 0)
+            {
+                $cardsNotFound[$notFoundCount] = $key;
+                $notFoundCount++;
+                return $cards;
+            }
+            if (pg_num_rows($result) > 1)
+            {
+                // this should never happen.
+                die("Card $key is not unique in database.");
+            }
+            else
+            {
+                $row = pg_fetch_array($result);
+                $cardData["sold"] = $row["sold"];
+                $cardData["cardHolder"] = $row["card_holder"];
+                $cardData["total"] = $val;
+                $cardData["cardNumber"] = $key;
+                if ($cardData["sold"] == "t")
+                {
+                    $cardData["studentId"] = getStudentIdByCard($key);
+                }
+                $cards[$i++] = $cardData;
+            }
+        }
+        return cards;  // includes both sold and unsold cards.
+    }
+    
+    // given cards, an array of cardData arrays
+    //   cards[0] => 
+    //      sold => t
+    //      card_holder => Grace Bickford
+    //      total => 100.00
+    //      cardNumber => 01-2345-6789-0
+    //      studentId => 1156
+    // produce students, an array keyed by student 'last first' (for ksort)
+    // of studentData arrays.
+    //   students[Bickford Emma] =>
+    //      ksCards => an array of cardData arrays 
+    //      swCards => an array of cardData arrays
+    //      first   => Emma
+    //      last    => Bickford
+    function genStudentReport($ksCards, $swCards, $scripData)
+    {
+        $students = array();      
+        
+        foreach($ksCards as $value)
+        {
+            if ($value["sold"] == "t")
+            {
+                // Get data from students table
+                $studentId = $value["studentId"];
+                $result = queryPostgres("SELECT * FROM students WHERE id=$1", array($studentId));
+                $row = pg_fetch_array($result);
+                $first = $row["first"];
+                $last = $row["last"];
+                $studentKey = $last . " " . $first;
+                
+                if (array_key_exists($studentKey, $students))
+                {
+                    $students[$studentKey]["ksCards"][] = $value;
+                }
+                else
+                {
+                    $studKsCards = array($value);
+                    $studData = array("ksCards" => $studKsCards, "first" => $first, "last" => $last);
+                    $students[$studentKey] = $studData;
+                }                        
+            }
+        }
+        
+        // print_r($students);
+        ksort($students);
+        foreach($students as $value)
+        {
+            $name = $value["first"] . " " . $value["last"];
+            echo "<h2>$name</h2><br>";
+            foreach ($value["ksCards"] as $cardsVal)
+            {
+                $cardNumber = $cardsVal["cardNumber"];
+                $cardHolder = $cardsVal["cardHolder"];
+                $total = $cardsVal["total"];
+                echo "$cardNumber $cardHolder $total <br>";
+            }
+        }
+        
         
     }
     
-    function getCardOwners($cardTotals, &$cardOwners)
+    function genNonStudentReport($ksCardData, $swCardData)
     {
-        $numCards = count($cardTotals);
-        foreach ($cardTotals as $key => $val)
+        
+    }
+    
+    function getStudentIdByCard($cardNumber)
+    {
+        $result = queryPostgres("SELECT * FROM student_cards WHERE card=$1", array($cardNumber));
+        if (($row = pg_fetch_array($result)) === false)
         {
-            // is the card sold?
-            $card = queryPostgres("SELECT * FROM cards where id=$1", array($key)
-            $cardOwners[$key] = 2;
+            $pageMsg = "Card $cardNumber is marked as sold but is not associated with a student.";
+            $fatalError = true;
+        }
+        else
+        {
+            return $row["student"];
         }
     }
     
@@ -189,8 +333,11 @@
         return $amount;
     }
     
+    echo "<p class='pageMessage'>$pageMsg</p>";
+    
+    if (!$fatalError)
+    {
     echo <<<_END
-    <p class='pageMessage'>$pageMsg</p>
     <div class="form">
       <form method='post' action='reloads.php' enctype='multipart/form-data'>
         King Soopers
@@ -201,5 +348,6 @@
       </form>
     </div>
 _END;
+    }
 
 ?>

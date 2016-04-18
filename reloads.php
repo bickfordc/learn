@@ -63,14 +63,15 @@
         {
             $ksCardTotals = processKingSoopers($tmpNames[0]);
             $ksCardsNotFound = array();
-            $ksCardData = getCardData($ksCardTotals, $ksCardsNotFound);
-           
-            //print_r($ksCardData);
-            genStudentReport($ksCardData, NULL, NULL);
-            
+            $ksSoldCardTotal = 0;
+            $ksUnsoldCardTotal = 0;
+            $ksCardData = getCardData($ksCardTotals, $ksCardsNotFound, $ksSoldCardTotal, $ksUnsoldCardTotal);
+                      
             $swCardTotals = processSafeway($tmpNames[1]);
             $swCardsNotFound = array();
-            $swCardData = getCardData($swCardTotals, $swCardsNotFound);
+            $swSoldCardTotal = 0;
+            $swUnsoldCardTotal = 0;
+            $swCardData = getCardData($swCardTotals, $swCardsNotFound, $swSoldCardTotal, $swUnsoldCardTotal);
             
             $cardsNotFound = array_merge($ksCardsNotFound, $swCardsNotFound);
             if (count($cardsNotFound > 0))
@@ -81,6 +82,13 @@
                     $pageMsg .= $val . "<br>";
                 }
             }
+            
+            //print_r($ksCardData);
+            $students = groupCardsByStudent($ksCardData, "ks");
+            $students = array_merge($students, groupCardsByStudent($swCardData, "sw"));
+            
+            genStudentReport($students);
+            genNonStudentReport(array($ksCardData, $swCardData));
             
             // This will yield array elements like scripTotals['Carlton Bickford'] => 10.50
             //$scripTotals = processScrip($tmpNames[2]); 
@@ -181,22 +189,43 @@
     function processSafeway($tmpName)
     {
         $cardTotals = array();
-        
+        if (($file = fopen($tmpName, "r")) !== false)
+        {
+            $line = 0;
+            while(($row = fgetcsv($file, 300, ",")) !== false)
+            {
+                if (++$line < 2)
+                {
+                    // 2nd line is start of real data
+                    continue;
+                }
+                $transactDate = $row[4];
+                $cardNumber = modifySafewayCardNumber($row[2]);
+                if ($cardNumber == "")
+                {
+                    // Ignore any line without a card number
+                    continue;
+                }
+                $amount = handleCurrency($row[3]);
+                $cardTotals[$cardNumber] += $amount;
+            }     
+        }
+        else
+        {
+            $pageMsg = "Could not open file $tmpName";
+        }
         return $cardTotals;
     }
     
-    // build an array of students. Each student has an array of cards.
-    // each card has a total.
+    
     // idea for later.  student_scripfamily table. Each student may have multiple scrip families.
-    function getCardData($cardTotals, &$cardsNotFound)
+    function getCardData($cardTotals, &$cardsNotFound, &$soldCardTotal, &$unsoldCardTotal)
     {
         $cards = array();
         $cardData = array();
         $notFoundCount = 0;
-        $i = 0;
         foreach ($cardTotals as $key => $val)
         {
-            // Add logic here to recognize safeway card and add space.
             $result = queryPostgres("SELECT * FROM cards where id=$1", array($key));
             if (pg_num_rows($result) == 0)
             {
@@ -219,11 +248,16 @@
                 if ($cardData["sold"] == "t")
                 {
                     $cardData["studentId"] = getStudentIdByCard($key);
+                    $soldCardTotal += $val;
+                }
+                else
+                {
+                    $unsoldCardTotal += $val;
                 }
                 $cards[$i++] = $cardData;
             }
         }
-        return cards;  // includes both sold and unsold cards.
+        return $cards;  // includes both sold and unsold cards.
     }
     
     // given cards, an array of cardData arrays
@@ -236,15 +270,18 @@
     // produce students, an array keyed by student 'last first' (for ksort)
     // of studentData arrays.
     //   students[Bickford Emma] =>
-    //      ksCards => an array of cardData arrays 
+    //      ksCards => an array of cardData arrays
+    //      ksCardsTotal => 150.00
     //      swCards => an array of cardData arrays
+    //      swCardsTotal => 300.00
     //      first   => Emma
     //      last    => Bickford
-    function genStudentReport($ksCards, $swCards, $scripData)
+    function groupCardsByStudent($cards, $cardType)
     {
-        $students = array();      
+        $students = array();    
+        $cardKey = $cardType . "Cards";
         
-        foreach($ksCards as $value)
+        foreach($cards as $value)
         {
             if ($value["sold"] == "t")
             {
@@ -258,38 +295,94 @@
                 
                 if (array_key_exists($studentKey, $students))
                 {
-                    $students[$studentKey]["ksCards"][] = $value;
+                    $students[$studentKey][$cardKey][] = $value;
                 }
                 else
                 {
                     $studKsCards = array($value);
-                    $studData = array("ksCards" => $studKsCards, "first" => $first, "last" => $last);
+                    $studData = array($cardKey => $studKsCards, "first" => $first, "last" => $last);
                     $students[$studentKey] = $studData;
                 }                        
             }
         }
         
+        // Calculate student total by card type
+        foreach($students as &$studData)
+        {
+            $sum = 0;
+            $cardData = $studData[$cardKey];
+            foreach($cardData as $card)
+            {
+                $sum += $card["total"];
+            }
+            
+            $studData[$cardKey . "Total"] = $sum;
+        }       
+        
+        return $students;
+    }
+    
+    function genStudentReport($students)
+    {        
         // print_r($students);
         ksort($students);
+        $cardTypes = array("ks", "sw");
+        $stores = array("King Soopers", "Safeway");
+      
         foreach($students as $value)
         {
             $name = $value["first"] . " " . $value["last"];
             echo "<h2>$name</h2><br>";
-            foreach ($value["ksCards"] as $cardsVal)
+            
+            for($i=0; $i <=1; $i++)
             {
-                $cardNumber = $cardsVal["cardNumber"];
-                $cardHolder = $cardsVal["cardHolder"];
-                $total = $cardsVal["total"];
-                echo "$cardNumber $cardHolder $total <br>";
+                $cardKey = $cardTypes[$i] . "Cards";
+                $store = $stores[$i];
+
+                if (count($value[$cardKey]) > 0)
+                {
+                    foreach ($value[$cardKey] as $cardsVal)
+                    {
+                        $cardNumber = $cardsVal["cardNumber"];
+                        $cardHolder = $cardsVal["cardHolder"];
+                        $total = $cardsVal["total"];
+                        echo "$cardNumber $cardHolder $total <br>";
+                    }
+                    $key = $cardKey . "Total";
+                    echo $store . " Card total for student: $value[$key] <br>";
+                }
             }
         }
-        
-        
     }
     
-    function genNonStudentReport($ksCardData, $swCardData)
+    function genNonStudentReport($cards)
     {
+        $storeNames = array("King Soopers", "Safeway");
+        $i = 0;
         
+        echo "<br><h2>Cards unassociated with a student</h2><br>";
+        foreach($cards as $store)
+        {
+            $count = 0;
+            $storeTotal = 0;
+            $storeName = $storeNames[$i++];
+            foreach($store as $cardData)
+            {
+                if ($cardData["sold"] == "f")
+                {
+                    $count++;
+                    $cardNumber = $cardData["cardNumber"];
+                    $cardHolder = $cardData["cardHolder"];
+                    $total = $cardData["total"];
+                    $storeTotal += $total;
+                    echo "$cardNumber $cardHolder $total <br>";
+                }
+            }
+            if ($count > 0)
+            {
+                echo "$storeName cards total: $storeTotal";
+            }
+        }
     }
     
     function getStudentIdByCard($cardNumber)
@@ -331,6 +424,30 @@
         }
         
         return $amount;
+    }
+    
+    /*
+     * Safeway card numbers are 19 digits, but are really text, not numeric.
+     * This causes a lot of grief in Excel. Excel will automatically use 
+     * scientific notation to represent a number greater than 12 digits (if the 
+     * cell is the default "General" format). Since these card numbers are often
+     * used in Excel, we will avoid this problem by inserting a space after the 
+     * 12th digit. Excel then treats the number as text.
+     */
+    function modifySafewayCardNumber($cardNumber)
+    {
+        $modifiedCardNumber = $cardNumber;
+        
+        // Only deal with 19 digit numbers. If input is not as expected,
+        // we will simply return it unchanged.
+        if (preg_match("/^[0-9]{19}$/", $cardNumber) == 1)
+        {
+            $prefix = substr($cardNumber, 0, 12);
+            $suffix = substr($cardNumber, 12);
+            $modifiedCardNumber = $prefix . " " . $suffix;
+        }
+        
+        return $modifiedCardNumber;
     }
     
     echo "<p class='pageMessage'>$pageMsg</p>";

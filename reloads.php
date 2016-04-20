@@ -322,7 +322,23 @@
         return $students;
     }
     
-    function genStudentReport($students)
+    function writeHtml()
+    {
+        if (($report = fopen("currentReport.html", "w")) !== false)
+        {
+            genStudentReport($report, $students);
+            
+            fclose($report);
+        }
+        else
+        {
+            $pageMsg = "Could not create report file";
+            $fatalError = true;
+        }
+        
+    }
+    
+    function genStudentReport($report, $students)
     {        
         // print_r($students);
         ksort($students);

@@ -95,7 +95,7 @@
             $students = groupCardsByStudent($students, $swCardData, "sw");
             //$students = array_merge($students, groupCardsByStudent($swCardData, "sw"));
             
-            $report = new RebateReport($students, $rebatePercentages);
+            $report = new RebateReport($students, $rebatePercentages, $ksCardData, $swCardData);
             echo $report->getTable();
             
             //genStudentReport($students);

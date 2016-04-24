@@ -13,9 +13,9 @@
     $loggedin = TRUE;
   }
   else $loggedin = FALSE;
-
+  
   echo "<title>$appname$userstr</title><link rel='stylesheet' " .
-       "href='styles.css' type='text/css'>"                     .
+       "href='styles.css' type='text/css'>" .
        "</head><body><center><canvas id='logo' width='624' "    .
        "height='200'>$appname</canvas></center>"                .
        "<script src='https://code.jquery.com/jquery-2.2.1.min.js'></script>" .
@@ -25,14 +25,16 @@
   {
     echo "<div class='navigation'>" .
          "<ul class='nav'>"         .
-  	   "<li><a href='index.php'>Cards</a>" .
+  	   "<li><a href='index.php'>CARDS</a>" .
              "<ul><li><a href='#'>Add new unsold cards</a></li>" .
              "<li><a href='#'>Sell cards to students</a></li>" .
-             "<li><a href='reloads.php'>Record monthly card reloads</a></li>" .
              "<li><a href='#'>Edit cards</a></li>" .
              "</ul></li>" .
-           "<li><a href='index.php'>Students</a>" .
+           "<li><a href='index.php'>STUDENTS</a>" .
              "<ul><li><a href='#'>Edit students</a></li>" .
+             "</ul></li>" .
+           "<li><a href='index.php'>REPORTS</a>" .
+             "<ul><li><a href='reloads.php'>Record monthly card reloads</a></li>" .
              "</ul></li>" .
   	   "<li style='float: right'><a href='#'>$user</a>"  .
   	     "<ul><li><a href='#'>Edit Profile</a></li>" .

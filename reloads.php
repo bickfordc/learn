@@ -1,6 +1,8 @@
 <?php
 
     require_once 'header.php';
+    require_once 'RebateReport.php';
+    require_once 'RebatePercentages.php';
 
     if (!$loggedin) die();
 
@@ -73,6 +75,10 @@
             $swUnsoldCardTotal = 0;
             $swCardData = getCardData($swCardTotals, $swCardsNotFound, $swSoldCardTotal, $swUnsoldCardTotal);
             
+            $rebatePercentages = new RebatePercentages(
+                    $ksSoldCardTotal + $ksUnsoldCardTotal,
+                    $swSoldCardTotal + $swUnsoldCardTotal);
+            
             $cardsNotFound = array_merge($ksCardsNotFound, $swCardsNotFound);
             if (count($cardsNotFound > 0))
             {
@@ -84,11 +90,16 @@
             }
             
             //print_r($ksCardData);
-            $students = groupCardsByStudent($ksCardData, "ks");
-            $students = array_merge($students, groupCardsByStudent($swCardData, "sw"));
+            $sudents = array();
+            $students = groupCardsByStudent($students, $ksCardData, "ks");
+            $students = groupCardsByStudent($students, $swCardData, "sw");
+            //$students = array_merge($students, groupCardsByStudent($swCardData, "sw"));
             
-            genStudentReport($students);
-            genNonStudentReport(array($ksCardData, $swCardData));
+            $report = new RebateReport($students, $rebatePercentages);
+            echo $report->getTable();
+            
+            //genStudentReport($students);
+            //genNonStudentReport(array($ksCardData, $swCardData));
             
             // This will yield array elements like scripTotals['Carlton Bickford'] => 10.50
             //$scripTotals = processScrip($tmpNames[2]); 
@@ -276,9 +287,9 @@
     //      swCardsTotal => 300.00
     //      first   => Emma
     //      last    => Bickford
-    function groupCardsByStudent($cards, $cardType)
+    function groupCardsByStudent($students, $cards, $cardType)
     {
-        $students = array();    
+        //$students = array();    
         $cardKey = $cardType . "Cards";
         
         foreach($cards as $value)

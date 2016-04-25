@@ -41,7 +41,7 @@
             }
             
             $cardHolder = $row[0];
-            $isSold =  $row[2] == 'y' ? 't' : 'f';
+            $isSold =  $row[2] == 'Y' ? 't' : 'f';
 
             queryPostgres("INSERT INTO cards (id, sold, card_holder) VALUES ($1, $2, $3)",
                     array($cardNumber, $isSold, $cardHolder));
@@ -55,7 +55,7 @@
                     continue;
                 }
                 
-                $isStudentActive = $row[6] == 'y' ? 't' : 'f';
+                $isStudentActive = $row[6] == 'Y' ? 't' : 'f';
                 
                 $acctMarker = $row[5];
                 if ($lastAcctMarker != $acctMarker) 

@@ -242,7 +242,7 @@
             {
                 $cardsNotFound[$notFoundCount] = $key;
                 $notFoundCount++;
-                return $cards;
+                //return $cards;
             }
             if (pg_num_rows($result) > 1)
             {

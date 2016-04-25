@@ -435,8 +435,9 @@ EOF;
         
         $ksTotal = $this->ksSoldTotal + $this->ksUnsoldTotal;
         $ksRebate = $ksTotal * $this->ksRebatePercent;
-        $ksBoostersShare = $this->ksUnsoldTotal + ($this->ksSoldTotal * $this->boostersPercent);
-        $ksStudentShare = $this->ksTotal - $ksBoostersShare;
+        $ksBoostersShare = ($this->ksUnsoldTotal * $this->ksRebatePercent) + 
+                           ($this->ksSoldTotal * $this->ksRebatePercent * $this->boostersPercent);
+        $ksStudentShare = $ksRebate - $ksBoostersShare;
         
         $ksTotalAmt = $this->numberToMoney($ksTotal);
         $ksRebateAmt = $this->numberToMoney($ksRebate);
@@ -446,6 +447,32 @@ EOF;
         $this->writeStoreCardsTotalValues("King Soopers", $ksTotalAmt, $ksRebateAmt,
                 $ksBoostersShareAmt, $ksStudentShareAmt);
         
+        $swTotal = $this->swSoldTotal + $this->swUnsoldTotal;
+        $swRebate = $swTotal * $this->swRebatePercent;
+        $swBoostersShare = ($this->swUnsoldTotal * $this->swRebatePercent) + 
+                           ($this->swSoldTotal * $this->swRebatePercent * $this->boostersPercent);
+        $swStudentShare = $swRebate - $swBoostersShare;
+        
+        $swTotalAmt = $this->numberToMoney($swTotal);
+        $swRebateAmt = $this->numberToMoney($swRebate);
+        $swBoostersShareAmt = $this->numberToMoney($swBoostersShare);
+        $swStudentShareAmt = $this->numberToMoney($swStudentShare);
+        
+        $this->writeStoreCardsTotalValues("Safeway", $swTotalAmt, $swRebateAmt,
+                $swBoostersShareAmt, $swStudentShareAmt);
+        
+        $total = $ksTotal + $swTotal;
+        $rebate = $ksRebate + $swRebate;
+        $boostersShare = $ksBoostersShare + $swBoostersShare;
+        $studentShare = $ksStudentShare + $swStudentShare;
+        
+        $totalAmt = $this->numberToMoney($total);
+        $rebateAmt = $this->numberToMoney($rebate);
+        $boostersShareAmt = $this->numberToMoney($boostersShare);
+        $studentShareAmt = $this->numberToMoney($studentShare);
+        
+        $this->writeStoreCardsTotalValues("Total", $totalAmt, $rebateAmt,
+                $boostersShareAmt, $studentShareAmt);
     }
     
     private function buildTable()

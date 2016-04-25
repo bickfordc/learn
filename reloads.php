@@ -7,6 +7,7 @@
     if (!$loggedin) die();
 
     $fatalError = false;
+    $reportComplete = false;
     
     if ($_FILES)  
     {   
@@ -80,13 +81,14 @@
                     $swSoldCardTotal + $swUnsoldCardTotal);
             
             $cardsNotFound = array_merge($ksCardsNotFound, $swCardsNotFound);
-            if (count($cardsNotFound > 0))
+            if (count($cardsNotFound) > 0)
             {
                 $pageMsg = "The following grocery cards were not found:<br>";
                 foreach ($cardsNotFound as $val)
                 {
                     $pageMsg .= $val . "<br>";
                 }
+                $fatalError = true;
             }
             
             //print_r($ksCardData);
@@ -97,6 +99,7 @@
             
             $report = new RebateReport($students, $rebatePercentages, $ksCardData, $swCardData);
             echo $report->getTable();
+            $reportComplete = true;
             
             //genStudentReport($students);
             //genNonStudentReport(array($ksCardData, $swCardData));
@@ -479,7 +482,7 @@
     
     echo "<p class='pageMessage'>$pageMsg</p>";
     
-    if (!$fatalError)
+    if ($reportComplete === false && $fatalError === false)
     {
     echo <<<_END
     <div class="form">

@@ -6,6 +6,9 @@
 
     if (!$loggedin) die();
 
+    // Handle Mac OS X line endings (LF) on uploaded .csv files
+    ini_set("auto_detect_line_endings", true);
+    
     $fatalError = false;
     $reportComplete = false;
     

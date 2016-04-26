@@ -5,8 +5,6 @@
 
   require_once 'functions.php';
 
-  $userstr = ' (Guest)';
-
   if (isset($_SESSION['user']))
   {
     $user     = $_SESSION['user'];
@@ -14,7 +12,7 @@
   }
   else $loggedin = FALSE;
   
-  echo "<title>$appname$userstr</title><link rel='stylesheet' " .
+  echo "<title>$appname</title><link rel='stylesheet' " .
        "href='styles.css' type='text/css'>" .
        "</head><body><center><canvas id='logo' width='624' "    .
        "height='200'>$appname</canvas></center>"                .

@@ -20,13 +20,12 @@ image.onload = function()
   gradient.addColorStop(0.30, 'maroon')
   context.fillStyle = gradient
   context.fillText( "Music Boosters", 200, 120)
-  //context.strokeText("C  bin's Nest", 0, 0)
 }
 
 function O(i) { return typeof i == 'object' ? i : document.getElementById(i) }
 function S(i) { return O(i).style                                            }
 function C(i) { return document.getElementsByClassName(i)                    }
-
+  
 /*  jQuery ready function. Specify a function to execute when the DOM is fully loaded.  */
 $(document).ready(
   /* This is the function that will get executed after the DOM is fully loaded */

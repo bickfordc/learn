@@ -1,13 +1,17 @@
 <?php
 
+    require 'vendor/autoload.php';
+    
     require_once 'header.php';
     require_once 'RebateReport.php';
     require_once 'RebatePercentages.php';
-
+     
     if (!$loggedin) die();
 
     // Handle Mac OS X line endings (LF) on uploaded .csv files
     ini_set("auto_detect_line_endings", true);
+    
+    //error_reporting(E_ALL);
     
     $fatalError = false;
     $reportComplete = false;
@@ -98,14 +102,45 @@
             $sudents = array();
             $students = groupCardsByStudent($students, $ksCardData, "ks");
             $students = groupCardsByStudent($students, $swCardData, "sw");
-            //$students = array_merge($students, groupCardsByStudent($swCardData, "sw"));
             
             $report = new RebateReport($students, $rebatePercentages, $ksCardData, $swCardData);
-            echo $report->getTable();
             $reportComplete = true;
             
-            //genStudentReport($students);
-            //genNonStudentReport(array($ksCardData, $swCardData));
+//            ob_start();
+//            try {
+//                $html2pdf = new HTML2PDF('L','A4','en', true, 'UTF-8', array(20,5,5,8));
+//                //$html2pdf->setModeDebug();
+//                $html2pdf->WriteHTML($report->getTable(true));
+//                $pdfContent = $html2pdf->Output('', 'S');
+//                ob_end_flush();
+//            }
+//            catch(HTML2PDF_exception $e) {
+//                echo $e;
+//                exit;
+//            }
+
+            if ($reportComplete === true)
+            {
+                file_put_contents("pdfsrc.html", $report->getTable(true));
+                
+                echo "<div class='tile_div'>" .
+                     "<button class='styleButton' id='pdf'>Download as .PDF file</button>" .
+                     "<button class='last styleButton' id='done'>Done</button>" .
+                     "<div class='clear'></div></div>" .
+                     "<script>" .
+                     "$('#pdf').click(function(event){ " .
+                       "$('body').css('cursor', 'progress');" .
+                       "window.location.href = 'download.php';" .
+                       "$('body').css('cursor', 'default');" .
+                     "});" .
+                     "$('#done').click(function(event){ " .
+                       "window.location.href = 'index.php'" .
+                     "});" .
+                     "</script>";
+                echo $report->getTable();   
+            }
+            
+            
             
             // This will yield array elements like scripTotals['Carlton Bickford'] => 10.50
             //$scripTotals = processScrip($tmpNames[2]); 
@@ -499,5 +534,5 @@
     </div>
 _END;
     }
-
+    
 ?>

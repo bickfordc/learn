@@ -10,6 +10,8 @@ class RebateReport {
     private $students;
     private $style;
     private $table;
+    private $tableForHtml = null;
+    private $tableForPdf = null; 
     private $ksRebatePercent;
     private $swRebatePercent;
     private $boostersPercent;
@@ -25,7 +27,26 @@ class RebateReport {
     private $swNumUnsoldCards = 0;
     private $swSoldTotal = 0;
     private $swUnsoldTotal = 0;
+    private $isForPdf;
  
+    // Table styling
+    private $tg;
+    private $tg_td;
+    private $tg_th;
+    private $tg_title;
+    private $tg_studentHeader;
+    private $tg_underline;
+    private $tg_b3sr;
+    private $tg_r3sr;
+    private $tg_b3sl;
+    private $tg_r3sl;
+    private $tg_ra;
+    private $tg_rab;
+    private $tg_lab;
+    private $tg_plab;
+    private $tg_pdf_th;
+    private $tg_pdf_td;
+    
     function __construct($students, $rebatePercentages, $ksCards, $swCards)
     {
         $this->students = $students;
@@ -38,118 +59,139 @@ class RebateReport {
         $this->calculateStoreTotals();
         ksort($this->students);
         $this->initStyle();
-        $this->buildTable();
+        //$this->buildTable();
     }
     
     private function initStyle()
     {
+        $this->tg = "border-collapse: collapse; " .
+              "border-spacing: 0; " .
+              "border: none; " .
+              "margin: 30px auto; ";
+        
+        $this->tg_td = "font-family: verdana, Arial, sans-serif; " .  
+              "font-size: 14px; " .
+              "padding: 10px 5px; " .
+              "border-style: solid; " .
+              "border-width: 0px; " .
+              "overflow: hidden; " .
+              "word-break: normal; ";
+        
+        $this->tg_pdf_td = "padding: 10px 5px; " .
+              "overflow: hidden; ";
+        
+        $this->tg_th = "font-family: verdana, Arial, sans-serif; " .
+              "font-size: 14px; " .
+              "font-weight: normal; " .
+              "padding: 10px 5px; " .
+              "border-style: solid; " .
+              "border-width: 0px;".
+              "overflow: hidden; " .
+              "word-break: normal; ";
+        
+        $this->tg_pdf_th = "padding: 10px 5px; " .
+              "overflow: hidden; ";
+        
+        $this->tg_title = "font-size: 18px; " .
+              "font-weight: bold; " .
+              "color: blue; " .
+              "text-align: center; ";
+               
+        $this->tg_studentHeader = "font-weight: bold; " .
+                "background-color: #efefef; ";
+                
+        $this->tg_underline = "border-bottom: 1px solid black; ";
+                
+        $this->tg_b3sr = "font-weight: bold; ";
+//                "border-top: 1px solid black; " .
+//                "border-right: 1px solid black; " .
+//                "border-bottom: 1px solid black; ";
+                
+        $this->tg_r3sr = "font-weight: bold; " .
+                "color: red; " ;
+//                "border-top: 1px solid red; " .
+//                "border-right: 1px solid red; " .
+//                "border-bottom: 1px solid red; ";
+        
+        $this->tg_b3sl = "text-align: right; ";
+//                "border-top: 1px solid black; " .
+//                "border-left: 1px solid black; " .
+//                "border-bottom: 1px solid black; ";
+        
+        $this->tg_r3sl = "text-align: right; " .
+                "color: red; " ;
+//                "border-top: 1px solid red; " .
+//                "border-left: 1px solid red; " .
+//                "border-bottom: 1px solid red; ";
+          
+        $this->tg_ra = "text-align: right; ";
+        
+        $this->tg_rab = "text-align: right; " .
+                "font-weight: bold;  ";
+        
+        $this->tg_lab = "text-align: left; " .
+                "font-weight: bold; ";
+        
+        $this->tg_plab = "text-align: left; " .
+                "font-weight: bold; " .
+                "padding-left: 80px ";
+        
         $this->style =<<<EOF
         <style type="text/css">
         .tg {
-            border-collapse: collapse;
-            border-spacing: 0;
-            border: none;
-            margin: 0px auto;
+            $this->tg
         }
 
         .tg td {
-            font-family: verdana, Arial, sans-serif;
-            font-size: 14px;
-            padding: 10px 5px;
-            border-style: solid;
-            border-width: 0px;
-            overflow: hidden;
-            word-break: normal;
+            $this->tg_td
         }
 
         .tg th {
-            font-family: verdana, Arial, sans-serif;
-            font-size: 14px;
-            font-weight: normal;
-            padding: 10px 5px;
-            border-style: solid;
-            border-width: 0px;
-            overflow: hidden;
-            word-break: normal;
+            $this->tg_th
         }
 
-        .tg .tg-erlg {
-            font-weight: bold;
-            background-color: #efefef;
-            vertical-align: top;
+        .tg .tg-title {
+            $this->tg_title
         }
-                
+           
         .tg .tg-undr {
-            border-bottom: 1px solid black;
+            $this->tg_underline
         }
-
-        .tg .tg-b3sr {
-            font-weight: bold;
-            /*background-color: #efefef;*/
-            vertical-align: top;
-            border-top: 1px solid black;
-            border-right: 1px solid black;
-            border-bottom: 1px solid black;
-        }        
+           
+        .tg .tg-sthd {
+            $this->tg_studentHeader     
+        }
         
+        .tg .tg-b3sr {
+            $this->tg_b3sr
+        }            
+                
         .tg .tg-r3sr {
-            font-weight: bold;
-            color: red;
-            vertical-align: top;
-            border-top: 1px solid red;
-            border-right: 1px solid red;
-            border-bottom: 1px solid red;
+            $this->tg_r3sr
         }   
-                
-        .tg .tg-lqy6 {
-            text-align: right;
-            vertical-align: top;
-        }
-                
+        
         .tg .tg-b3sl {
-            text-align: right;
-            vertical-align: top;
-            border-top: 1px solid black;
-            border-left: 1px solid black;
-            border-bottom: 1px solid black;
+            $this->tg_b3sl
         }
 
         .tg .tg-r3sl {
-            color: red;
-            text-align: right;
-            vertical-align: top;
-            border-top: 1px solid red;
-            border-left: 1px solid red;
-            border-bottom: 1px solid red;
+            $this->tg_r3sl
         }
                 
-        .tg .tg-amwm {
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            vertical-align: top;
+        .tg .tg-ra {
+            $this->tg_ra
+        }
+                
+        .tg .tg-rab {
+            $this->tg_rab
         }
 
-        .tg .tg-9hbo {
-            font-weight: bold;
-            vertical-align: top;
+        .tg .tg-lab {
+             $this->tg_lab
         }
-
-        .tg .tg-yw4l {
-            vertical-align: top;
-        }
-
-        .tg .tg-fl7z {
-            color: #fe0000;
-            text-align: right;
-            vertical-align: top;
-        }
-
-        .tg .tg-l2oz {
-            font-weight: bold;
-            text-align: left;
-            vertical-align: top;
-            padding-left: 80px;
+                
+        .tg .tg-plab {
+             $this->tg_plab
         }
     </style>              
 EOF;
@@ -158,18 +200,32 @@ EOF;
     
     private function startTable()
     {
-        $this->table .= $this->style;
-        $this->table .= "<table class='tg'>";
+        $style = "class='tg'";
+        if ($this->isForPdf) { 
+            $this->table .= "<page>";
+            $style = "style='$this->tg'";
+        } else {
+             $this->table .= $this->style;
+        }
+        
+        $this->table .= "<table $style>";
     }
     
     private function endTable()
     {
-        $this->table .= '</table>';
+        $this->table .= "</table>";
+        if ($this->isForPdf) { 
+            $this->table .= "</page>";
+        }
     }
      
     private function writeTitle($title)
     {
-        $this->table .= "<tr><th class='tg-amwm' colspan='7'>$title</th></tr>";
+        $style = "class='tg-title'";
+        if ($this->isForPdf) {  
+            $style = "style='$this->tg_pdf_th $this->tg_title'";
+        }
+        $this->table .= "<tr><th $style colspan='7'>$title</th></tr>";
     }
     
     private function writeLine()
@@ -179,54 +235,81 @@ EOF;
     
     private function writeUnderline()
     {
-        $this->table .= "<tr><td class='tg-undr' colspan='7'></td></tr>";
+        $style = "class='tg-undr'";
+        if ($this->isForPdf) {  
+            $style = "style='$this->tg_pdf_td $this->tg_underline'";
+        } 
+        $this->table .= "<tr><td $style colspan='7'></td></tr>";  
     }
     
     private function writeStudentHeader($name)
     {
-        $this->table .= "<tr><td class='tg-erlg' colspan='7'>$name</td></tr>";
+        $style = "class='tg-sthd'";
+        if ($this->isForPdf) {
+            $style = "style='$this->tg_pdf_td $this->tg_studentHeader'";
+        }
+        $this->table .= "<tr><td $style colspan='7'>$name</td></tr>";
     }
     
     private function writeCardHeaders()
     {
+        $styleRab = "class='tg-rab'";
+        $styleLab = "class='tg-lab'";
+        
+        if ($this->isForPdf) {  
+            $styleRab = "style='$this->tg_pdf_td $this->tg_rab'";
+            $styleLab = "style='$this->tg_pdf_td $this->tg_lab'";
+        }
         $this->table .=         
         "<tr>" .
-            "<td class='tg-9hbo'>Card Number</td>" .
-            "<td class='tg-9hbo'>Card Holder</td>" .
-            "<td class='tg-9hbo'>Amount</td>" .
-            "<td class='tg-9hbo'>Rebate</td>" .
-            "<td class='tg-9hbo'>Boosters Share</td>" .
-            "<td class='tg-9hbo'>Student Share</td>" .
-            "<td class='tg-yw4l'></td>" .
+            "<td $styleLab>Card Number</td>" .
+            "<td $styleLab>Card Holder</td>" .
+            "<td $styleRab>Amount</td>" .
+            "<td $styleRab>Rebate</td>" .
+            "<td $styleRab>Boosters Share</td>" .
+            "<td $styleRab>Student Share</td>" .
+            "<td></td>" .
         "</tr>";
     }
     
     private function writeHeader()
     {
+        $styleRab = "class='tg-rab'";
+        
+        if ($this->isForPdf) {  
+            $styleRab = "style='$this->tg_pdf_td $this->tg_rab'";
+        }
+        
         $this->table .=         
         "<tr>" .
-            "<td class='tg-9hbo'></td>" .
-            "<td class='tg-9hbo'></td>" .
-            "<td class='tg-9hbo'>Amount</td>" .
-            "<td class='tg-9hbo'>Rebate</td>" .
-            "<td class='tg-9hbo'>Boosters Share</td>" .
-            "<td class='tg-9hbo'>Student Share</td>" .
-            "<td class='tg-yw4l'></td>" .
+            "<td $styleRab></td>" .
+            "<td $styleRab></td>" .
+            "<td $styleRab>Amount</td>" .
+            "<td $styleRab>Rebate</td>" .
+            "<td $styleRab>Boosters Share</td>" .
+            "<td $styleRab>Student Share</td>" .
+            "<td></td>" .
         "</tr>";
     }
 
     private function writeCardReload($card, $cardHolder, $amount)
     {
+        $styleRa = "class='tg-ra'";
+        
+        if ($this->isForPdf) { 
+            $styleRa = "style='$this->tg_pdf_td $this->tg_ra'";
+        }
+        
         $amount = $this->numberToMoney($amount);
         $this->table .=
         "<tr>" .
-            "<td class='tg-yw4l'>$card</td>" .
-            "<td class='tg-yw4l'>$cardHolder</td>" .
-            "<td class='tg-lqy6'>$amount</td>" .
-            "<td class='tg-yw4l'></td>" .
-            "<td class='tg-yw4l'></td>" .
-            "<td class='tg-yw4l'></td>" .
-            "<td class='tg-yw4l'></td>" .
+            "<td>$card</td>" .
+            "<td>$cardHolder</td>" .
+            "<td $styleRa>$amount</td>" .
+            "<td></td>" .
+            "<td></td>" .
+            "<td></td>" .
+            "<td></td>" .
         "</tr>";
     }
     
@@ -262,14 +345,24 @@ EOF;
     
     private function writeStoreCardsTotalValues($store, $total, $rebate, $boostersShare, $studentShare) {
         
+        $styleLab = "class='tg-lab'";
+        $stylePlab = "class='tg-plab'";
+        $styleRa = "class='tg-ra'";
+        
+        if ($this->isForPdf) {  
+            $styleLab = "style='$this->tg_pdf_td $this->tg_lab'";
+            $stylePlab = "style='$this->tg_pdf_td $this->tg_plab'";
+            $styleRa  = "style='$this->tg_pdf_td $this->tg_ra'";
+        }
+        
         $this->table .=
         "<tr>" .
-            "<td class='tg-l2oz' colspan='2'>$store</td>" .
-            "<td class='tg-lqy6'>$total</td>" .
-            "<td class='tg-lqy6'>$rebate</td>" .
-            "<td class='tg-lqy6'>$boostersShare</td>" .
-            "<td class='tg-lqy6'>$studentShare</td>" .
-            "<td class='tg-yw4l'></td>" .
+            "<td $stylePlab colspan='2'>$store</td>" .
+            "<td $styleRa>$total</td>" .
+            "<td $styleRa>$rebate</td>" .
+            "<td $styleRa>$boostersShare</td>" .
+            "<td $styleRa>$studentShare</td>" .
+            "<td></td>" .
         "</tr>";
     }
     
@@ -285,24 +378,43 @@ EOF;
         $boostersShareAmt = $this->numberToMoney($boostersShare);
         $studentShareAmt = $this->numberToMoney($studentShare);
         
+        $styleLab = "class='tg-lab'";
+        $stylePlab = "class='tg-plab'";
+        $styleRa  = "class='tg-ra'";
+        $styleB3sl = "class='tg-b3sl'";
+        $styleR3sl = "class='tg-r3sl'";
+        $styleB3sr = "class='tg-b3sr'";
+        $styleR3sr = "class='tg-r3sr'";
+        
+        if ($this->isForPdf) { 
+            $styleLab = "style='$this->tg_pdf_td $this->tg_lab'";
+            $stylePlab = "style='$this->tg_pdf_td $this->tg_plab'";
+            $styleRa  = "style='$this->tg_pdf_td $this->tg_ra'";
+            $styleB3sl = "style='$this->tg_pdf_td $this->tg_b3sl'";
+            $styleR3sl = "style='$this->tg_pdf_td $this->tg_r3sl'";
+            $styleB3sr = "style='$this->tg_pdf_td $this->tg_b3sr'";
+            $styleR3sr = "style='$this->tg_pdf_td $this->tg_r3sr'";
+        }
+        
         $this->table .=
         "<tr>" .
-            "<td class='tg-l2oz' colspan='2'>Grocery cards total</td>" .
-            "<td class='tg-lqy6'>$allStoreTotalAmt</td>" .
-            "<td class='tg-lqy6'>$rebateAmt</td>" .
-            "<td class='tg-lqy6'>$boostersShareAmt</td>";
+            "<td $stylePlab colspan='2'>Grocery cards total</td>" .
+            "<td $styleRa>$allStoreTotalAmt</td>" .
+            "<td $styleRa>$rebateAmt</td>" .
+            "<td $styleRa>$boostersShareAmt</td>";
         
         if ($studentShare < 0) {
             $this->table .=               
-            "<td class='tg-r3sl'>$studentShareAmt</td>" .
-            "<td class='tg-r3sr'>$name</td>";
+            "<td $styleR3sl>$studentShareAmt</td>" .
+            "<td $styleR3sr>$name</td>";
         }
         else {
             $this->table .= 
-            "<td class='tg-b3sl'>$studentShareAmt</td>" .
-            "<td class='tg-b3sr'>$name</td>" ;            
+            "<td $styleB3sl>$studentShareAmt</td>" .
+            "<td $styleB3sr>$name</td>" ;            
         }
-                
+        $this->table .= "</tr>";
+        
         $this->writeLine();
     }
     
@@ -318,13 +430,22 @@ EOF;
         $boostersShareAmt = $this->numberToMoney($boostersShare);
         $studentShareAmt = $this->numberToMoney($studentShare);
         
+        $stylePlab = "class='tg-plab'";
+        $styleRa = "class='tg-ra'";
+        
+        if ($this->isForPdf) { 
+            $stylePlab = "style='$this->tg_pdf_td $this->tg_plab'";
+            $styleRa  = "style='$this->tg_pdf_td $this->tg_ra'";
+        }
+        
         $this->table .=
         "<tr>" .
-            "<td class='tg-l2oz' colspan='2'>Grocery cards total</td>" .
-            "<td class='tg-lqy6'>$allStoreTotalAmt</td>" .
-            "<td class='tg-lqy6'>$rebateAmt</td>" .
-            "<td class='tg-lqy6'>$boostersShareAmt</td>" .
-            "<td class='tg-lqy6'>$studentShareAmt</td>" .
+            "<td $stylePlab colspan='2'>Grocery cards total</td>" .
+            "<td $styleRa>$allStoreTotalAmt</td>" .
+            "<td $styleRa>$rebateAmt</td>" .
+            "<td $styleRa>$boostersShareAmt</td>" .
+            "<td $styleRa>$studentShareAmt</td>" .
+            "<td></td>" .
         "</tr>";
                 
         $this->writeLine();
@@ -333,7 +454,7 @@ EOF;
     private function writeStudentCards()
     {
         $this->writeTitle("Grocery Card Reloads per Student");
-        
+
         foreach($this->students as $student)
         {
             $name = $student["first"] . " " . $student["last"];
@@ -367,6 +488,7 @@ EOF;
             {
                 $this->writeAllStoreCardsTotal($name, $ksCardsTotal, $swCardsTotal);
             }
+            //break; // single student for testing
         }
         $this->writeUnderline();
         $this->writeLine();
@@ -396,7 +518,7 @@ EOF;
     }
     
     private function writeNonStudentCards()
-    {
+    {   
         if ($this->ksNumUnsoldCards > 0 || $this->swNumUnsoldCards > 0) {
             
             $this->writeTitle("Grocery Cards Unassociated with a Student");           
@@ -477,6 +599,7 @@ EOF;
     
     private function buildTable()
     {
+        $this->table = "";
         $this->startTable();
         $this->writeStudentCards();
         $this->writeNonStudentCards();
@@ -484,8 +607,30 @@ EOF;
         $this->endTable();
     }
     
-    public function getTable()
+    public function getTable($isForPdf = false)
     {
-        return $this->table;
+        $result = null;
+        $this->isForPdf = $isForPdf;
+        
+        if ($isForPdf) 
+        {
+            if ($this->tableForPdf == null)
+            {
+                $this->buildTable();
+                $this->tableForPdf = $this->table;
+            }
+            $result = $this->tableForPdf; 
+        }
+        else 
+        {
+            if ($this->tableForHtml == null) 
+            {
+                $this->buildTable();
+                $this->tableForHtml = $this->table;
+            }
+            $result = $this->tableForHtml; 
+        }
+        return $result;
     }
+    
 }

@@ -7,7 +7,7 @@
 
     <h3>Setting up...</h3>
 
-<?php // Example 26-3: setup.php
+<?php 
   require_once 'functions.php';
 
   $sql =<<<EOF
@@ -18,33 +18,6 @@ EOF;
   
   postgres_query($sql);
   
-  $sql =<<<EOF
-    CREATE TABLE IF NOT EXISTS messages 
-      (id SERIAL PRIMARY KEY,
-       auth varchar(32),
-       recip varchar(32),
-       pm char(1),
-       time timestamp,
-       message varchar(4096));
-EOF;
-  
-  postgres_query($sql);
-  
-  $sql =<<<EOF
-    CREATE TABLE IF NOT EXISTS friends 
-      (usr varchar(32),
-       friend varchar(32));
-EOF;
-
-  postgres_query($sql);
-  
-  $sql =<<<EOF
-    CREATE TABLE IF NOT EXISTS profiles
-      (usr varchar(32),
-       text varchar(4096));    
-EOF;
-  
-  postgres_query($sql);
   
     $sql =<<<EOF
     CREATE TABLE IF NOT EXISTS reset_requests
@@ -94,7 +67,8 @@ EOF;
        sold boolean DEFAULT FALSE,
        card_holder varchar(80),
        notes varchar(80),
-       active boolean DEFAULT TRUE
+       active boolean DEFAULT TRUE,
+       donor_code char(2) 
       );
        
 EOF;

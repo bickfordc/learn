@@ -40,11 +40,12 @@
                 continue;
             }
             
+            $donorCode = (strlen($cardNumber) > 15) ? 'SW' : 'KS';            
             $cardHolder = $row[0];
             $isSold =  $row[2] == 'Y' ? 't' : 'f';
 
-            queryPostgres("INSERT INTO cards (id, sold, card_holder) VALUES ($1, $2, $3)",
-                    array($cardNumber, $isSold, $cardHolder));
+            queryPostgres("INSERT INTO cards (id, sold, card_holder, donor_code) VALUES ($1, $2, $3, $4)",
+                    array($cardNumber, $isSold, $cardHolder, $donorCode));
             
             if ($isSold == 't')
             {

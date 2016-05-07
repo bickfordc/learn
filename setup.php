@@ -69,8 +69,7 @@ EOF;
        notes varchar(80),
        active boolean DEFAULT TRUE,
        donor_code char(2) 
-      );
-       
+      );       
 EOF;
     
     postgres_query($sql);
@@ -80,12 +79,32 @@ EOF;
       (student integer REFERENCES students (id),
        card varchar(20) REFERENCES cards (id),
        PRIMARY KEY (student, card)
-      );
-            
+      );           
+EOF;
+    
+    postgres_query($sql);
+   
+$sql =<<<EOF
+    CREATE TABLE IF NOT EXISTS scrip_families
+      (first varchar(32),
+       last varchar(32),
+       PRIMARY KEY (first, last)
+      );           
 EOF;
     
     postgres_query($sql);
     
+    $sql =<<<EOF
+    CREATE TABLE IF NOT EXISTS student_scrip_families
+      (student integer REFERENCES students (id),
+       scrip_first varchar(32),
+       scrip_last  varchar(32),
+       PRIMARY KEY (student, scrip_first, scrip_last),
+       FOREIGN KEY (scrip_first, scrip_last) REFERENCES scrip_families(first, last)
+      );          
+EOF;
+    
+    postgres_query($sql);
     
   function postgres_query($sql) {
     $ret = pg_query($sql);

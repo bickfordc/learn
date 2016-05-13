@@ -17,6 +17,8 @@ class RebateReport {
     private $boostersPercent;
     private $ksCards;
     private $swCards;
+    private $scripFamilies;
+    private $nonStudentScripFamilies;
     
     private $ksUnsoldCards;
     private $ksNumUnsoldCards = 0;
@@ -27,6 +29,12 @@ class RebateReport {
     private $swNumUnsoldCards = 0;
     private $swSoldTotal = 0;
     private $swUnsoldTotal = 0;
+
+    private $studentScripTotalValue = 0 ;
+    private $studentScripTotalRebate = 0;
+    private $nonStudentScripTotalValue = 0;
+    private $nonStudentScripTotalRebate = 0;
+    
     private $isForPdf;
  
     // Table styling
@@ -47,7 +55,7 @@ class RebateReport {
     private $tg_pdf_th;
     private $tg_pdf_td;
     
-    function __construct($students, $rebatePercentages, $ksCards, $swCards)
+    function __construct($students, $rebatePercentages, $ksCards, $swCards, $scripFamilies)
     {
         $this->students = $students;
         $this->ksRebatePercent = $rebatePercentages->getKsRebatePercentage();
@@ -55,8 +63,9 @@ class RebateReport {
         $this->boostersPercent = $rebatePercentages->getBoostersPercentage();
         $this->ksCards = $ksCards;
         $this->swCards = $swCards;
+        $this->scripFamilies = $scripFamilies;
         
-        $this->calculateStoreTotals();
+        $this->calculateTotals();
         ksort($this->students);
         $this->initStyle();
         //$this->buildTable();
@@ -262,8 +271,8 @@ EOF;
         }
         $this->table .=         
         "<tr>" .
-            "<td $styleLab>Card Number</td>" .
-            "<td $styleLab>Card Holder</td>" .
+            "<td $styleLab>Source</td>" .
+            "<td $styleLab>Contributor</td>" .
             "<td $styleRab>Amount</td>" .
             "<td $styleRab>Rebate</td>" .
             "<td $styleRab>Boosters Share</td>" .
@@ -292,7 +301,7 @@ EOF;
         "</tr>";
     }
 
-    private function writeCardReload($card, $cardHolder, $amount)
+    private function writeCardReload($card, $cardHolder, $amount, $rebatePercent)
     {
         $styleRa = "class='tg-ra'";
         
@@ -300,13 +309,64 @@ EOF;
             $styleRa = "style='$this->tg_pdf_td $this->tg_ra'";
         }
         
-        $amount = $this->numberToMoney($amount);
+        $rebate = $amount * $rebatePercent;
+        $amountStr = $this->numberToMoney($amount);
+        $rebateStr = $this->numberToMoney($rebate);
+        
         $this->table .=
         "<tr>" .
             "<td>$card</td>" .
             "<td>$cardHolder</td>" .
-            "<td $styleRa>$amount</td>" .
+            "<td $styleRa>$amountStr</td>" .
+            "<td $styleRa>$rebateStr</td>" .
             "<td></td>" .
+            "<td></td>" .
+            "<td></td>" .
+        "</tr>";
+    }
+    
+        private function writeNonStudentScrip($family)
+    {
+        $styleRa = "class='tg-ra'";
+        
+        if ($this->isForPdf) { 
+            $styleRa = "style='$this->tg_pdf_td $this->tg_ra'";
+        }
+        
+        $contributor = $family->getFullName();
+        $amountStr = $this->numberToMoney($family->getTotalValue());
+        $rebateStr = $this->numberToMoney($family->getTotalRebate());
+        
+        $this->table .=
+        "<tr>" .
+            "<td>Scrip</td>" .
+            "<td>$contributor</td>" .
+            "<td $styleRa>$amountStr</td>" .
+            "<td $styleRa>$rebateStr</td>" .
+            "<td></td>" .
+            "<td></td>" .
+            "<td></td>" .
+        "</tr>";
+    }
+    
+    private function writeScripFamily($family)
+    {
+        $styleRa = "class='tg-ra'";
+        
+        if ($this->isForPdf) { 
+            $styleRa = "style='$this->tg_pdf_td $this->tg_ra'";
+        }
+        
+        $contributor = $family->getFullName();
+        $amount = $this->numberToMoney($family->getTotalValue());
+        $rebate = $this->numberToMoney($family->getTotalRebate());
+                
+        $this->table .=
+        "<tr>" .
+            "<td>Scrip</td>" .
+            "<td>$contributor</td>" .
+            "<td $styleRa>$amount</td>" .
+            "<td $styleRa>$rebate</td>" .
             "<td></td>" .
             "<td></td>" .
             "<td></td>" .
@@ -366,14 +426,14 @@ EOF;
         "</tr>";
     }
     
-    private function writeAllStoreCardsTotal($name, $ksTotal, $swTotal)
+    private function writeStudentTotal($name, $ksTotal, $swTotal, $scripTotalValue, $scripTotalRebate)
     {
-        $allStoreTotal = $ksTotal + $swTotal;
-        $rebate = ($ksTotal * $this->ksRebatePercent) + ($swTotal * $this->swRebatePercent);
+        $studentTotal = $ksTotal + $swTotal + $scripTotalValue;
+        $rebate = ($ksTotal * $this->ksRebatePercent) + ($swTotal * $this->swRebatePercent) + $scripTotalRebate;
         $boostersShare = $rebate * $this->boostersPercent;
         $studentShare = $rebate - $boostersShare;
                 
-        $allStoreTotalAmt = $this->numberToMoney($allStoreTotal);
+        $studentTotalAmt = $this->numberToMoney($studentTotal);
         $rebateAmt = $this->numberToMoney($rebate);
         $boostersShareAmt = $this->numberToMoney($boostersShare);
         $studentShareAmt = $this->numberToMoney($studentShare);
@@ -398,8 +458,8 @@ EOF;
         
         $this->table .=
         "<tr>" .
-            "<td $stylePlab colspan='2'>Grocery cards total</td>" .
-            "<td $styleRa>$allStoreTotalAmt</td>" .
+            "<td $stylePlab colspan='2'>Student total</td>" .
+            "<td $styleRa>$studentTotalAmt</td>" .
             "<td $styleRa>$rebateAmt</td>" .
             "<td $styleRa>$boostersShareAmt</td>";
         
@@ -418,14 +478,15 @@ EOF;
         $this->writeLine();
     }
     
-    private function writeNonStudentStoreCardsTotal($name, $ksTotal, $swTotal)
+    private function writeNonStudentTotal($ksTotal, $swTotal, $scripTotalValue, $scripTotalRebate)
     {
-        $allStoreTotal = $ksTotal + $swTotal;
-        $rebate = ($ksTotal * $this->ksRebatePercent) + ($swTotal * $this->swRebatePercent);
+        $total = $ksTotal + $swTotal + $scripTotalValue;
+        $rebate = ($ksTotal * $this->ksRebatePercent) + 
+                  ($swTotal * $this->swRebatePercent) + $scripTotalRebate;
         $boostersShare = $rebate;
         $studentShare = $rebate - $boostersShare;
                 
-        $allStoreTotalAmt = $this->numberToMoney($allStoreTotal);
+        $totalAmt = $this->numberToMoney($total);
         $rebateAmt = $this->numberToMoney($rebate);
         $boostersShareAmt = $this->numberToMoney($boostersShare);
         $studentShareAmt = $this->numberToMoney($studentShare);
@@ -440,8 +501,8 @@ EOF;
         
         $this->table .=
         "<tr>" .
-            "<td $stylePlab colspan='2'>Grocery cards total</td>" .
-            "<td $styleRa>$allStoreTotalAmt</td>" .
+            "<td $stylePlab colspan='2'>Total</td>" .
+            "<td $styleRa>$totalAmt</td>" .
             "<td $styleRa>$rebateAmt</td>" .
             "<td $styleRa>$boostersShareAmt</td>" .
             "<td $styleRa>$studentShareAmt</td>" .
@@ -451,9 +512,9 @@ EOF;
         $this->writeLine();
     }
     
-    private function writeStudentCards()
+    private function writeStudentFunds()
     {
-        $this->writeTitle("Grocery Card Reloads per Student");
+        $this->writeTitle("Funds per Student");
 
         foreach($this->students as $student)
         {
@@ -462,39 +523,48 @@ EOF;
             $swCardCount = count($student["swCards"]);
             $ksCardsTotal = $student["ksCardsTotal"];
             $swCardsTotal = $student["swCardsTotal"];
+            $scripTotalValue = 0;
+            $scripTotalRebate = 0;
             
             $this->writeStudentHeader($name);
             $this->writeCardHeaders();
             
             foreach($student["ksCards"] as $cardData)
             {
-                $this->writeCardReload($cardData["cardNumber"], $cardData["cardHolder"], $cardData["total"]);
+                $this->writeCardReload($cardData["cardNumber"], $cardData["cardHolder"], $cardData["total"], $this->ksRebatePercent);
             }
-            if ($ksCardCount > 0)
-            {
-                $this->writeStoreCardsTotal("King Soopers", $ksCardsTotal, $this->ksRebatePercent, $this->boostersPercent);
-            }
+//            if ($ksCardCount > 0)
+//            {
+//                $this->writeStoreCardsTotal("King Soopers", $ksCardsTotal, $this->ksRebatePercent, $this->boostersPercent);
+//            }
             
             foreach($student["swCards"] as $cardData)
             {
-                $this->writeCardReload($cardData["cardNumber"], $cardData["cardHolder"], $cardData["total"]);
+                $this->writeCardReload($cardData["cardNumber"], $cardData["cardHolder"], $cardData["total"], $this->swRebatePercent);
             }
-            if ($swCardCount > 0)
+//            if ($swCardCount > 0)
+//            {
+//                $this->writeStoreCardsTotal("Safeway", $swCardsTotal, $this->swRebatePercent, $this->boostersPercent);
+//            }
+            
+            foreach($student["scripFamilies"] as $family)
             {
-                $this->writeStoreCardsTotal("Safeway", $swCardsTotal, $this->swRebatePercent, $this->boostersPercent);
+                $scripTotalValue += $family->getTotalValue();
+                $scripTotalRebate += $family->getTotalRebate();
+                $this->writeScripFamily($family);
             }
             
-            if ($ksCardCount > 0 || $swCardCount > 0)
-            {
-                $this->writeAllStoreCardsTotal($name, $ksCardsTotal, $swCardsTotal);
-            }
+            //if ($ksCardCount > 0 || $swCardCount > 0)
+            //{
+            $this->writeStudentTotal($name, $ksCardsTotal, $swCardsTotal, $scripTotalValue, $scripTotalRebate);
+            //}
             //break; // single student for testing
         }
         $this->writeUnderline();
         $this->writeLine();
     }
-    
-    private function calculateStoreTotals() 
+      
+    private function calculateTotals() 
     {       
         foreach($this->ksCards as $cardData) {
             if ($cardData["sold"] == "f") {
@@ -515,36 +585,54 @@ EOF;
                 $this->swSoldTotal += $cardData["total"];
             }
         }
+        
+        foreach($this->scripFamilies as $family) {
+            if ($family->getStudentId() === NULL) {
+                $this->nonStudentScripFamilies[] = $family;
+                $this->nonStudentScripTotalValue += $family->getTotalValue();
+                $this->nonStudentScripTotalRebate += $family->getTotalRebate();
+            } else {
+                $this->studentScripTotalValue += $family->getTotalValue();
+                $this->studentScripTotalRebate += $family->getTotalRebate();
+            }
+        }
+            
     }
     
-    private function writeNonStudentCards()
+    private function writeNonStudentFunds()
     {   
-        if ($this->ksNumUnsoldCards > 0 || $this->swNumUnsoldCards > 0) {
+        if ($this->ksNumUnsoldCards > 0 || $this->swNumUnsoldCards > 0 || 
+            count($this->nonStudentScripFamilies) > 0) {
             
-            $this->writeTitle("Grocery Cards Unassociated with a Student");           
+            $this->writeTitle("Funds Unassociated with a Student");           
             $this->writeCardHeaders();
             
             foreach($this->ksUnsoldCards as $cardData) {
                 $card = $cardData["cardNumber"];
                 $cardHolder = $cardData["cardHolder"];
                 $amount = $cardData["total"];
-                $this->writeCardReload($card, $cardHolder, $amount);
+                $this->writeCardReload($card, $cardHolder, $amount, $this->ksRebatePercent);
             }
-            if ($this->ksNumUnsoldCards > 0) {
-                $this->writeStoreCardsTotal("King Soopers", $this->ksUnsoldTotal, $this->ksRebatePercent, 1.00);
-            }
+//            if ($this->ksNumUnsoldCards > 0) {
+//                $this->writeStoreCardsTotal("King Soopers", $this->ksUnsoldTotal, $this->ksRebatePercent, 1.00);
+//            }
             
             foreach($this->swUnsoldCards as $cardData) {
                 $card = $cardData["cardNumber"];
                 $cardHolder = $cardData["cardHolder"];
                 $amount = $cardData["total"];
-                $this->writeCardReload($card, $cardHolder, $amount);
+                $this->writeCardReload($card, $cardHolder, $amount, $this->swRebatePercent);
             }
-            if ($this->swNumUnsoldCards > 0) {
-                $this->writeStoreCardsTotal("Safeway", $this->swUnsoldTotal, $this->swRebatePercent, 1.00);
+//            if ($this->swNumUnsoldCards > 0) {
+//                $this->writeStoreCardsTotal("Safeway", $this->swUnsoldTotal, $this->swRebatePercent, 1.00);
+//            }
+            
+            foreach($this->nonStudentScripFamilies as $family) {
+                $this->writeNonStudentScrip($family);
             }
             
-            $this->writeNonStudentStoreCardsTotal($name, $this->ksUnsoldTotal, $this->swUnsoldTotal);
+            $this->writeNonStudentTotal($this->ksUnsoldTotal, $this->swUnsoldTotal,
+                    $this->nonStudentScripTotalValue, $this->nonStudentScripTotalRebate);
             
             $this->writeUnderline();
             $this->writeLine();
@@ -552,7 +640,7 @@ EOF;
     }
     
     private function writeOverallGroceryTotals() {
-        $this->writeTitle("Grocery Card Totals");
+        $this->writeTitle("Total Funds");
         $this->writeHeader();
         
         $ksTotal = $this->ksSoldTotal + $this->ksUnsoldTotal;
@@ -583,10 +671,24 @@ EOF;
         $this->writeStoreCardsTotalValues("Safeway", $swTotalAmt, $swRebateAmt,
                 $swBoostersShareAmt, $swStudentShareAmt);
         
-        $total = $ksTotal + $swTotal;
-        $rebate = $ksRebate + $swRebate;
-        $boostersShare = $ksBoostersShare + $swBoostersShare;
-        $studentShare = $ksStudentShare + $swStudentShare;
+        $scripTotal = $this->studentScripTotalValue + $this->nonStudentScripTotalValue;
+        $scripRebate = $this->studentScripTotalRebate + $this->nonStudentScripTotalRebate;
+        $scripBoostersShare = $this->nonStudentScripTotalRebate + 
+                              ($this->studentScripTotalRebate * $this->boostersPercent);
+        $scripStudentShare = $scripRebate - $scripBoostersShare;
+        
+        $scripTotalAmt = $this->numberToMoney($scripTotal);
+        $scripRebateAmt = $this->numberToMoney($scripRebate);
+        $scripBoostersShareAmt = $this->numberToMoney($scripBoostersShare);
+        $scripStudentShareAmt = $this->numberToMoney($scripStudentShare);
+        
+        $this->writeStoreCardsTotalValues("Scrip", $scripTotalAmt, $scripRebateAmt,
+                $scripBoostersShareAmt, $scripStudentShareAmt);
+        
+        $total = $ksTotal + $swTotal + $scripTotal;
+        $rebate = $ksRebate + $swRebate + $scripRebate;
+        $boostersShare = $ksBoostersShare + $swBoostersShare + $scripBoostersShare;
+        $studentShare = $ksStudentShare + $swStudentShare + $scripStudentShare;
         
         $totalAmt = $this->numberToMoney($total);
         $rebateAmt = $this->numberToMoney($rebate);
@@ -601,8 +703,8 @@ EOF;
     {
         $this->table = "";
         $this->startTable();
-        $this->writeStudentCards();
-        $this->writeNonStudentCards();
+        $this->writeStudentFunds();
+        $this->writeNonStudentFunds();
         $this->writeOverallGroceryTotals();
         $this->endTable();
     }

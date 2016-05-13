@@ -5,6 +5,7 @@
     require_once 'header.php';
     require_once 'RebateReport.php';
     require_once 'RebatePercentages.php';
+    require_once 'ScripFamily.php';
      
     if (!$loggedin) die();
 
@@ -26,7 +27,7 @@
         $messages = array();
         $uploadError = false;
         
-        for ($i = 0; $i <= 1; $i++) 
+        for ($i = 0; $i <= 2; $i++) 
         {
             $messages[$i] = "OK";
             if ($_FILES['file']['error'][$i] === UPLOAD_ERR_OK)
@@ -34,12 +35,12 @@
                 $names[$i]    = $_FILES['file']['name'][$i];
                 $tmpNames[$i] = $_FILES['file']['tmp_name'][$i];
                 $types[$i]    = $_FILES['file']['type'][$i];
-                if ($types[$i] != "text/csv" && $types[$i] != "application/vnd.ms-excel")
-                {
-                    $messages[$i] = "The file type was $types[$i], not text/csv.";
-                    $uploadError = true;
-                }
-                if (!$uploadError && $i == 0)
+//                if ($types[$i] != "text/csv" && $types[$i] != "application/vnd.ms-excel")
+//                {
+//                    $messages[$i] = "The file type was $types[$i], not text/csv.";
+//                    $uploadError = true;
+//                }
+                if ($i == 0)
                 {
                     if (!validateKingSoopers($tmpNames[$i]))
                     {
@@ -47,11 +48,19 @@
                         $uploadError = true;
                     }
                 }
-                if (!$uploadError && $i == 1)
+                if ($i == 1)
                 {
                     if (!validateSafeway($tmpNames[$i]))
                     {
                         $messages[$i] = "This does not appear to be a Safeway statement.";
+                        $uploadError = true;
+                    }
+                }
+                if ($i == 2)
+                {
+                    if (!validateScrip($tmpNames[$i]))
+                    {
+                        $messages[$i] = "This does not appear to be a Scrip statement.";
                         $uploadError = true;
                     }
                 }
@@ -66,7 +75,7 @@
         if ($uploadError)
         {
             $pageMsg = "There was a problem uploading files.<br>" .
-                       "File 1 : $messages[0]<br>File 2 : $messages[1]<br>" .
+                       "File 1 : $messages[0]<br>File 2 : $messages[1]<br>File 3 : $messages[2]<br>" .
                        "Please try again.";
         }
         else
@@ -82,6 +91,8 @@
             $swSoldCardTotal = 0;
             $swUnsoldCardTotal = 0;
             $swCardData = getCardData($swCardTotals, $swCardsNotFound, $swSoldCardTotal, $swUnsoldCardTotal);
+            
+            $scripFamilies = processScrip($tmpNames[2]);
             
             $rebatePercentages = new RebatePercentages(
                     $ksSoldCardTotal + $ksUnsoldCardTotal,
@@ -102,22 +113,10 @@
             $sudents = array();
             $students = groupCardsByStudent($students, $ksCardData, "ks");
             $students = groupCardsByStudent($students, $swCardData, "sw");
+            $students = addScripFamiliesToStudents($students, $scripFamilies);
             
-            $report = new RebateReport($students, $rebatePercentages, $ksCardData, $swCardData);
+            $report = new RebateReport($students, $rebatePercentages, $ksCardData, $swCardData, $scripFamilies);
             $reportComplete = true;
-            
-//            ob_start();
-//            try {
-//                $html2pdf = new HTML2PDF('L','A4','en', true, 'UTF-8', array(20,5,5,8));
-//                //$html2pdf->setModeDebug();
-//                $html2pdf->WriteHTML($report->getTable(true));
-//                $pdfContent = $html2pdf->Output('', 'S');
-//                ob_end_flush();
-//            }
-//            catch(HTML2PDF_exception $e) {
-//                echo $e;
-//                exit;
-//            }
 
             if ($reportComplete === true)
             {
@@ -139,20 +138,7 @@
                      "</script>";
                 echo $report->getTable();   
             }
-            
-            
-            
-            // This will yield array elements like scripTotals['Carlton Bickford'] => 10.50
-            //$scripTotals = processScrip($tmpNames[2]); 
-            // Scrip student families not in the scrip_student table
-            //$studentFamiliesNotFound = array(); 
-            // ScripData records (indexed by studentFamily) include fields total, studentId
-            //$scripData = getScripData($scripTotals, $studentFamiliesNotFound);
-            
-            
         }
-        
-        //move_uploaded_file($_FILES['file1']['tmp_name'], $name1);    
     }
     else
     {
@@ -204,6 +190,35 @@
         }
        
         return $isValid;
+    }
+    
+    function validateScrip($tmpName) 
+    {
+        $isValid = false;
+        
+        if (($file = fopen($tmpName, "r")) !== false)
+        {
+            $row = fgetcsv($file, 300, ",");
+            $row = fgetcsv($file, 300, ","); // Get 2nd line, it is start of real data
+            $numFields = count($row);
+            $firstName = $row[0];
+            $lastName = $row[1];
+            $value = $row[7];
+            $cost  = $row[8];
+            $matchFirst = preg_match("/^[a-zA-Z ]*$/", $firstName);
+            $matchLast  = preg_match("/^[a-zA-Z ]*$/", $lastName);
+            $matchValue = preg_match("/^\d*[\.]?\d*$/", $value);
+            $matchCost  = preg_match("/^\d*[\.]?\d*$/", $cost);
+            if ($numFields == 13 && $matchFirst == 1 && $matchLast == 1 &&
+                $matchValue == 1 && $matchCost == 1)
+            {
+                $isValid = true;
+            }
+            
+            fclose($file);
+        }
+       
+        return $isValid;        
     }
     
     function processKingSoopers($tmpName)
@@ -269,6 +284,43 @@
         return $cardTotals;
     }
     
+    function processScrip($tmpName)
+    {
+        $scripFamilies = array();
+        if (($file = fopen($tmpName, "r")) !== false)
+        {
+            $line = 0;
+            while(($row = fgetcsv($file, 300, ",")) !== false)
+            {
+                if (++$line < 2)
+                {
+                    // 2nd line is start of real data
+                    continue;
+                }
+                $firstName = $row[0];
+                $lastName = $row[1];
+                $fullName = $firstName . " " . $lastName;
+                $value = handleCurrency($row[7]);
+                $cost  = handleCurrency($row[8]);
+                $scripFamily;
+                if (array_key_exists($fullName, $scripFamilies))
+                {
+                    $scripFamily = $scripFamilies[$fullName];
+                }
+                else
+                {
+                    $scripFamily = new ScripFamily($firstName, $lastName);
+                    $scripFamilies[$fullName] = $scripFamily;
+                }
+                $scripFamily->addOrder($value, $cost);
+            }     
+        }
+        else
+        {
+            $pageMsg = "Could not open file $tmpName";
+        }
+        return $scripFamilies;
+    }
     
     // idea for later.  student_scripfamily table. Each student may have multiple scrip families.
     function getCardData($cardTotals, &$cardsNotFound, &$soldCardTotal, &$unsoldCardTotal)
@@ -328,6 +380,7 @@
     //      swCardsTotal => 300.00
     //      first   => Emma
     //      last    => Bickford
+    //      id      => 1156
     function groupCardsByStudent($students, $cards, $cardType)
     {
         //$students = array();    
@@ -351,8 +404,8 @@
                 }
                 else
                 {
-                    $studKsCards = array($value);
-                    $studData = array($cardKey => $studKsCards, "first" => $first, "last" => $last);
+                    $studCards = array($value);
+                    $studData = array($cardKey => $studCards, "first" => $first, "last" => $last, "id" => $studentId);
                     $students[$studentKey] = $studData;
                 }                        
             }
@@ -374,83 +427,45 @@
         return $students;
     }
     
-    function writeHtml()
+    function addScripFamiliesToStudents($students, $scripFamilies)
     {
-        if (($report = fopen("currentReport.html", "w")) !== false)
+        foreach($scripFamilies as $family)
         {
-            genStudentReport($report, $students);
-            
-            fclose($report);
-        }
-        else
-        {
-            $pageMsg = "Could not create report file";
-            $fatalError = true;
-        }
-        
-    }
-    
-    function genStudentReport($report, $students)
-    {        
-        // print_r($students);
-        ksort($students);
-        $cardTypes = array("ks", "sw");
-        $stores = array("King Soopers", "Safeway");
-      
-        foreach($students as $value)
-        {
-            $name = $value["first"] . " " . $value["last"];
-            echo "<h2>$name</h2><br>";
-            
-            for($i=0; $i <=1; $i++)
+            if ($family->getStudentId() === NULL)
             {
-                $cardKey = $cardTypes[$i] . "Cards";
-                $store = $stores[$i];
-
-                if (count($value[$cardKey]) > 0)
+                continue;
+            }
+                
+            $foundStudent = false;
+            foreach ($students as $student)
+            {
+                if ($student["id"] == $family->getStudentId())
                 {
-                    foreach ($value[$cardKey] as $cardsVal)
-                    {
-                        $cardNumber = $cardsVal["cardNumber"];
-                        $cardHolder = $cardsVal["cardHolder"];
-                        $total = $cardsVal["total"];
-                        echo "$cardNumber $cardHolder $total <br>";
-                    }
-                    $key = $cardKey . "Total";
-                    echo $store . " Card total for student: $value[$key] <br>";
+                    $last = $student["last"];
+                    $first = $student["first"];
+                    $key = $last . " " . $first;
+                    $students[$key]["scripFamilies"][] = $family;
+//                    $students[$key]["scripTotalValue"] += $family->getTotalValue();
+//                    $students[$key]["scripTotalRebate"] += $family->getTotalRebate();
+                    $foundStudent = true;
+                    break;
                 }
             }
-        }
-    }
-    
-    function genNonStudentReport($cards)
-    {
-        $storeNames = array("King Soopers", "Safeway");
-        $i = 0;
-        
-        echo "<br><h2>Cards unassociated with a student</h2><br>";
-        foreach($cards as $store)
-        {
-            $count = 0;
-            $storeTotal = 0;
-            $storeName = $storeNames[$i++];
-            foreach($store as $cardData)
+            if (!$foundStudent)
             {
-                if ($cardData["sold"] == "f")
-                {
-                    $count++;
-                    $cardNumber = $cardData["cardNumber"];
-                    $cardHolder = $cardData["cardHolder"];
-                    $total = $cardData["total"];
-                    $storeTotal += $total;
-                    echo "$cardNumber $cardHolder $total <br>";
-                }
-            }
-            if ($count > 0)
-            {
-                echo "$storeName cards total: $storeTotal";
+                // This is a student that is not already in student array because 
+                // there were no grocery card transactions
+                $first = $family->getStudentFirstName();
+                $last = $family->getStudentLastName();
+                $key = $last . " " . $first;
+                $students[$key]["scripFamilies"][] = $family;
+                $students[$key]["first"] = $first;
+                $students[$key]["last"] = $last;
+//                $students[$key]["scripTotalValue"] += $family->getTotalValue();
+//                $students[$key]["scripTotalRebate"] += $family->getTotalRebate();
             }
         }
+        return $students;
     }
     
     function getStudentIdByCard($cardNumber)
@@ -528,6 +543,8 @@
         King Soopers
         <input type='file' name='file[]' size='10'>
         Safeway
+        <input type='file' name='file[]' size='10'>    
+        Scrip
         <input type='file' name='file[]' size='10'>    
         <button type='submit'>Upload</button>   
       </form>

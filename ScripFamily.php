@@ -20,28 +20,35 @@ class ScripFamily {
     private $totalCost = 0 ;
     private $totalRebate = 0;
     private $studentId = null;
+    private $studentFirst;
+    private $studentLast;
     
     function __construct($firstName, $lastName) {
         $this->firstName = $firstName;
         $this->lastName = $lastName;
         
-        $this->studentId = $this->getStudent($firstName, $lastName);
+        $this->getStudent($firstName, $lastName);
     }
     
-    private function getStudent($firstName, $lastName) {
+    private function getStudent($scripFirst, $scripLast) {
         
         $student = null;
         
         $result = queryPostgres(
            "SELECT * FROM student_scrip_families WHERE scrip_first=$1 AND scrip_last=$2", 
-           array($firstName, $lastName));
+           array($scripFirst, $scripLast));
         
-        if (pg_num_rows($result) != 0) {
+        if (pg_num_rows($result) > 0) {
             
             $row = pg_fetch_array($result);
-            $student = $row["student"];
+            $this->studentId = $row["student"];
+            
+            $result = queryPostgres(
+                "SELECT * FROM students WHERE id=$1", array($this->studentId));
+            $row = pg_fetch_array($result);
+            $this->studentFirst = $row["first"];
+            $this->studentLast = $row["last"];
         }
-        return $student;
     }
     
     public function addOrder($value, $cost) {
@@ -62,7 +69,7 @@ class ScripFamily {
         return $this->lastName;
     }
 
-    public function geFullName() {
+    public function getFullName() {
         return $this->firstName . " " . $this->lastName;
     }
     
@@ -84,5 +91,17 @@ class ScripFamily {
 
     public function getNumOrders() {
         return count($this->orders);
+    }
+    
+    public function getStudentId() {
+        return $this->studentId;
+    }
+    
+    public function getStudentFirstName() {
+        return $this->studentFirst;
+    }
+    
+    public function getStudentLastName() {
+        return $this->studentLast;
     }
 }

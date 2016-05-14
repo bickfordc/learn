@@ -1,40 +1,40 @@
 <?php
 
   require_once 'header.php';
-  require 'vendor/autoload.php';
   
   if (isset($_POST['email']))
   {
-    $dest = sanitizeString($_POST['email']);
+    $email = sanitizeString($_POST['email']);
              
     $resetCode = genResetCode();
         
     // Store request and send email only if user with that email exists.
-    if (storeResetRequest($resetCode, $dest))
+    if (storeResetRequest($resetCode, $email))
     {
-        $sendgrid = new SendGrid(getenv('SENDGRID_API_KEY'));
-        $email = new SendGrid\Email();
-        $email
-            ->addTo($dest)
-            ->setFrom(getenv('MB_EMAIL'))
-            ->setFromName('Windsor Music Boosters')
-            ->setSubject('Password reset request')
-            ->setText(genPlainTextMessage($resetCode))
-            //->setHtml('<strong>Hello World!</strong>')
-        ;
+        require 'vendor/phpmailer/phpmailer/PHPMailerAutoload.php';
         
-        try {
-            $sendgrid->send($email);
-        } catch(\SendGrid\Exception $e) {
-            echo $e->getCode();
-            foreach($e->getErrors() as $er) {
-                echo $er;
-            }
-        }
-        
+        $mail = new PHPMailer;
+        $mail->isSMTP();
+        $mail->SMTPDebug = 2; // 0 for production, 2 for debug
+        $mail->Debugoutput = 'html';
+        $mail->Host = 'smtp.gmail.com';
+        $mail->Port = 587;
+        $mail->SMTPSecure = 'tls';
+        $mail->SMTPAuth = true;
+        $mail->Username = getenv('MB_EMAIL');
+        $mail->Password = getenv('MB_EMAIL_PW');
+        $mail->setFrom($mail->Username, 'Grocery Cards');
+        $mail->addAddress($email);
+        $mail->Subject = 'Password reset request';
+        $mail->Body = genPlainTextMessage($resetCode);
+            
+        if (!$mail->send()) 
+        {
+            echo "Mailer Error: " . $mail->ErrorInfo;
+        } 
     }
     // Go to next page regardless. Give no indication of whether the user exists.  
-    header("Location: resetPassword.php?email=$dest");
+    header("Location: resetPassword.php?email=$email");
   }
 
   function getTargetUrl($resetCode, $email) 
@@ -60,10 +60,9 @@
   function genPlainTextMessage($resetCode)
   {   
       $msg = "We received a request to reset your password at Windsor Music Boosters " .
-             "Grocery Card Management site. Please use the following code.\n\n\t" .
-              $resetCode .
-             "\n\nThe code is for one time use only and will expire after 20 minutes.";
-             
+             "Grocery Card Management site. Please use the following code.\n" .
+             "The code is for one time use only and will expire after 20 minutes.\n\n\t" .
+             $resetCode;
       
       return $msg;
   }

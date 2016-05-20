@@ -358,7 +358,7 @@
                 {
                     $unsoldCardTotal += $val;
                 }
-                $cards[$i++] = $cardData;
+                $cards[] = $cardData;
             }
         }
         return $cards;  // includes both sold and unsold cards.

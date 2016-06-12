@@ -26,7 +26,11 @@
   function queryPostgres($query, $params)
   {
       $result = pg_query_params($query, $params);
-      if (!$result) die (pg_last_error());
+      if (!$result) 
+      {
+          $err = pg_last_error();
+          die (pg_last_error());
+      }
       return $result;
   }
   

@@ -29,7 +29,7 @@
              "<li><a href='#'>Edit cards</a></li>" .
              "</ul></li>" .
            "<li><a href='index.php'>STUDENTS</a>" .
-             "<ul><li><a href='#'>Edit students</a></li>" .
+             "<ul><li><a href='test.html'>Edit students</a></li>" .
              "</ul></li>" .
            "<li><a href='index.php'>REPORTS</a>" .
              "<ul><li><a href='reloads.php'>Record monthly card reloads</a></li>" .

@@ -39,8 +39,9 @@ $(function () {
             //{ name: "total", width: 80, align: "right" },
             //{ name: "note", width: 150, sortable: false }
         ],
+        editurl: "editStudentData.php",
         pager: "#pager",
-        rowNum: 20,
+        rowNum: 10,
         rowList: [10, 20, 30],
         sortname: "last",
         sortorder: "asc",
@@ -57,7 +58,14 @@ $(function () {
         }
     }); 
     
-    $("#list").jqGrid('navGrid', "#pager", {});
+    $("#list").jqGrid('navGrid', "#pager", 
+        {alerttext: "No row is selected"}, // general navigator parameters
+        {editCaption: "Edit a student"},   // modal edit   window parameters
+        {addCaption: "Add a student"},     // modal add    window parameters
+        {delCaption: "Delete a student"},  // modal del    window parameters
+        {},                                // modal search window parameters
+        {}                                 // modal view   window parameters
+    );
     //jQuery("#mysearch").jqGrid('filterGrid','#list',options);
 }); 
 </script>

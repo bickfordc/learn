@@ -142,8 +142,8 @@
     }
     else
     {
-        $pageMsg = "Select the .csv files received from King Soopers and
-        Safeway.<br>If the file is in another form such as .xls or .xlsx, open it 
+        $pageMsg = "Select the .csv files received from King Soopers, Safeway and
+        ShopWithScrip.<br>If the file is in another form such as .xls or .xlsx, open it 
         with Excel and save as \"CSV (Comma delimited) (*.csv)\"";
     }
     

@@ -6,7 +6,7 @@
     
     if ($_FILES)  
     {    
-        $name = $_FILES['filename']['name']; 
+        $name = $_FILES['filename']['tmp_name']; 
         
         $type = $_FILES['filename']['type'];
         if ($type != "text/csv" && $type != "application/vnd.ms-excel")
@@ -15,8 +15,8 @@
             exit();
         }
             
-        move_uploaded_file($_FILES['filename']['tmp_name'], $name);    
-        //echo "Uploaded image '$name'<br><img src='$name'>"; 
+        //move_uploaded_file($_FILES['filename']['tmp_name'], $name);    
+
         
         $file = fopen($name, "r");
         if ($file == NULL)
@@ -25,7 +25,7 @@
         }
  
         $firstLine = true;
-        //$lastAcctMarker = -1;
+
         
         while (!feof($file))
         {
@@ -46,6 +46,25 @@
                 continue;
             }
             
+            // Does scrip family already exist?
+            //
+            $result = queryPostgres("SELECT * FROM scrip_families WHERE first=$1 AND last=$2", 
+                    array($scripFirst, $scripLast));
+            
+            if (pg_num_rows($result) == 0) 
+            {
+                // Write to scrip_families table
+                //
+                queryPostgres("INSERT INTO scrip_families (first, last) VALUES ($1, $2)", 
+                    array($scripFirst, $scripLast));
+            }
+            
+            if ($studentLast == NULL)
+            {
+                // Not associated with a student
+                continue;
+            }
+            
             // lookup student id
             //
             $studentId;
@@ -62,15 +81,17 @@
                 $studentId = $row["id"];
             }
             
-            // Write to scrip_family table
-            //
-            queryPostgres("INSERT INTO scrip_families (first, last) VALUES ($1, $2)", 
-                    array($scripFirst, $scripLast));
-            
-            // Write to student_scrip_families table
-            //
-            queryPostgres("INSERT INTO student_scrip_families (student, scrip_first, scrip_last) VALUES ($1, $2, $3)", 
+            // Does student - scrip record already exist?
+            $result = queryPostgres("SELECT * FROM student_scrip_families WHERE student=$1 AND scrip_first=$2 AND scrip_last=$3",
                     array($studentId, $scripFirst, $scripLast));
+            
+            if (pg_num_rows($result) == 0) 
+            {
+                // Write to student_scrip_families table
+                //
+                queryPostgres("INSERT INTO student_scrip_families (student, scrip_first, scrip_last) VALUES ($1, $2, $3)", 
+                    array($studentId, $scripFirst, $scripLast));
+            }
         }
         
         fclose($file);

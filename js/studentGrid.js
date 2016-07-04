@@ -1,7 +1,7 @@
 
 $(function () {
     $("#list").jqGrid({
-        url: "example.php",
+        url: "getStudentData.php",
         datatype: "xml",
         mtype: "GET",
         colNames: ["Id", "First", "Last", "Active"],

@@ -42,7 +42,7 @@ $(function () {
         {addCaption: "Add a student"},     // modal add    window parameters
         {caption: "Delete student",        // modal del    window parameters
          width:500, msg: "Delete selected student?"},  
-        {},                                // modal search window parameters
+        {width:600},                       // modal search window parameters
         {}                                 // modal view   window parameters
     );
     //jQuery("#mysearch").jqGrid('filterGrid','#list',options);

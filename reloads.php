@@ -16,12 +16,13 @@
     
     $fatalError = false;
     $reportComplete = false;
+    $names = array();
     
     if ($_FILES)  
     {   
         //print_r($_FILES);
         
-        $names = array();
+        
         $tmpNames = array();
         $types = array();
         $messages = array();
@@ -35,11 +36,7 @@
                 $names[$i]    = $_FILES['file']['name'][$i];
                 $tmpNames[$i] = $_FILES['file']['tmp_name'][$i];
                 $types[$i]    = $_FILES['file']['type'][$i];
-//                if ($types[$i] != "text/csv" && $types[$i] != "application/vnd.ms-excel")
-//                {
-//                    $messages[$i] = "The file type was $types[$i], not text/csv.";
-//                    $uploadError = true;
-//                }
+
                 if ($i == 0)
                 {
                     if (!validateKingSoopers($tmpNames[$i]))
@@ -60,7 +57,7 @@
                 {
                     if (!validateScrip($tmpNames[$i]))
                     {
-                        $messages[$i] = "This does not appear to be a Scrip statement.";
+                        $messages[$i] = "This does not appear to be a ShopWithScrip statement.";
                         $uploadError = true;
                     }
                 }
@@ -115,7 +112,8 @@
             $students = groupCardsByStudent($students, $swCardData, "sw");
             $students = addScripFamiliesToStudents($students, $scripFamilies);
             
-            $report = new RebateReport($students, $rebatePercentages, $ksCardData, $swCardData, $scripFamilies);
+            $report = new RebateReport($students, $rebatePercentages, $ksCardData, $swCardData, 
+                    $names, $scripFamilies);
             $reportComplete = true;
 
             if ($reportComplete === true)

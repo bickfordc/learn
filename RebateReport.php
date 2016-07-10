@@ -19,6 +19,7 @@ class RebateReport {
     private $swCards;
     private $scripFamilies;
     private $nonStudentScripFamilies;
+    private $srcFileNames;
     
     private $ksUnsoldCards;
     private $ksNumUnsoldCards = 0;
@@ -55,7 +56,8 @@ class RebateReport {
     private $tg_pdf_th;
     private $tg_pdf_td;
     
-    function __construct($students, $rebatePercentages, $ksCards, $swCards, $scripFamilies)
+    function __construct($students, $rebatePercentages, $ksCards, $swCards, 
+            $srcFileNames, $scripFamilies)
     {
         $this->students = $students;
         $this->ksRebatePercent = $rebatePercentages->getKsRebatePercentage();
@@ -63,6 +65,7 @@ class RebateReport {
         $this->boostersPercent = $rebatePercentages->getBoostersPercentage();
         $this->ksCards = $ksCards;
         $this->swCards = $swCards;
+        $this->srcFileNames = $srcFileNames;
         $this->scripFamilies = $scripFamilies;
         
         $this->calculateTotals();
@@ -339,7 +342,7 @@ EOF;
         
         $this->table .=
         "<tr>" .
-            "<td>Scrip</td>" .
+            "<td>ShopWithScrip</td>" .
             "<td>$contributor</td>" .
             "<td $styleRa>$amountStr</td>" .
             "<td $styleRa>$rebateStr</td>" .
@@ -363,7 +366,7 @@ EOF;
                 
         $this->table .=
         "<tr>" .
-            "<td>Scrip</td>" .
+            "<td>ShopWithScrip</td>" .
             "<td>$contributor</td>" .
             "<td $styleRa>$amount</td>" .
             "<td $styleRa>$rebate</td>" .
@@ -682,7 +685,7 @@ EOF;
         $scripBoostersShareAmt = $this->numberToMoney($scripBoostersShare);
         $scripStudentShareAmt = $this->numberToMoney($scripStudentShare);
         
-        $this->writeStoreCardsTotalValues("Scrip", $scripTotalAmt, $scripRebateAmt,
+        $this->writeStoreCardsTotalValues("ShopWithScrip", $scripTotalAmt, $scripRebateAmt,
                 $scripBoostersShareAmt, $scripStudentShareAmt);
         
         $total = $ksTotal + $swTotal + $scripTotal;
@@ -699,10 +702,42 @@ EOF;
                 $boostersShareAmt, $studentShareAmt);
     }
     
+    private function writeSourceFileNames() 
+    {
+        $this->writeTitle("Source Files");
+        
+        $styleLab = "class='tg-lab'";
+        $stylePlab = "class='tg-plab'";
+        $styleRa = "class='tg-ra'";
+        
+        if ($this->isForPdf) {  
+            $styleLab = "style='$this->tg_pdf_td $this->tg_lab'";
+            $stylePlab = "style='$this->tg_pdf_td $this->tg_plab'";
+            $styleRa  = "style='$this->tg_pdf_td $this->tg_ra'";
+        }
+        
+        $donorNames = array("King Soopers", "Safeway", "ShopWithScrip");
+        
+        for ($i = 0; $i <= 2; $i++) 
+        {            
+            $filename = $this->srcFileNames[$i];
+            $this->table .=
+            "<tr>" .
+                "<td></td>" .
+                "<td $stylePlab colspan='2'>$donorNames[$i]</td>" .
+                "<td></td>" .
+                "<td colspan='3'>$filename</td>" .
+            "</tr>";
+        }
+        
+        $this->writeLine();
+    }
+    
     private function buildTable()
     {
         $this->table = "";
         $this->startTable();
+        $this->writeSourceFileNames();
         $this->writeStudentFunds();
         $this->writeNonStudentFunds();
         $this->writeOverallGroceryTotals();

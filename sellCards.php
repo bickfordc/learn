@@ -9,7 +9,7 @@ if (!$loggedin)
 
 $error = "";
 $pageMsg = "Begin typing a student name or card number to search. <em>TIP: Try typing " .
-           "just the last 4 digits of a card.</em><br>" .
+           "just the last 3 or 4 digits of a card.</em><br>" .
            "Note that King Soopers cards only use the last 11 digits and are of the form " .
            "01-2345-6789-0";
 
@@ -24,6 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error="Please select a student and card.";
     } else {
 
+        // TODO make sure the student first and last from the text box matches the student id.
+        
         if (assignCardToStudent($studentId, $cardNumber, $cardHolder, $errorMsg)) {
             $pageMsg = "Successfully assigned card " . $cardNumber . " to student " . $student;
             if (!empty($cardHolder)) {

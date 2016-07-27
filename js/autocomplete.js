@@ -16,7 +16,8 @@ $( document ).ready(function() {
                             })
 
                         $('.studentitem').click(function() {
-                            var text = $(this).html();
+                            //var text = $(this).html();
+                            var text = $(this).text();
                             $('#student').val(text);
                             var id = $(this).attr('data-id');
                             document.getElementById('studentid').value = id;

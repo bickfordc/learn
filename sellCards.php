@@ -20,21 +20,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cardNumber = sanitizeString($_POST[ 'card' ]);
     $cardHolder = sanitizeString($_POST[ 'cardholder' ]);
     
-    if ($studentId == 0 || $cardNumber == NULL) {
-        $error="Please select a student and card.";
-    } else {
-
-        // TODO make sure the student first and last from the text box matches the student id.
-        
-        if (assignCardToStudent($studentId, $cardNumber, $cardHolder, $errorMsg)) {
-            $pageMsg = "Successfully assigned card " . $cardNumber . " to student " . $student;
-            if (!empty($cardHolder)) {
-                $pageMsg .= "<br>Card holder = " . $cardHolder;
-            }   
+    if (!empty($student) && !empty($cardNumber)) {
+        $first = "";
+        $last = "";
+        parseStudentName($student, $first, $last);
+        $studentId = getStudentIdByName($first, $last);
+        if ($studentId == NULL) {
+            $pageMsg = "Card assignment failed:<br>" .
+                       "Student " . $first . " " . $last . " not found.";
         } else {
-            $pageMsg = "Card assignment failed.<br>" . $errorMsg;
-        }
-
+            
+            if (assignCardToStudent($studentId, $cardNumber, $cardHolder, $errorMsg)) {
+                $pageMsg = "Successfully assigned card " . $cardNumber . " to student " . $student;
+                if (!empty($cardHolder)) {
+                    $pageMsg .= "<br>Card holder = " . $cardHolder;
+                }   
+            } else {
+                $pageMsg = "Card assignment failed.<br>" . $errorMsg;
+            }
+        }   
+    } else {
+        $error = "Provide a student and a card.";
     }
 }
 
@@ -94,4 +100,43 @@ function assignCardToStudent($studentId, $cardNumber, $cardHolder, &$errorMsg) {
     } 
     
     return $returnVal;
+}
+
+function getStudentIdByName($first, $last) {
+    
+    if (empty($first) && !empty($last)) {
+        $result = queryPostgres("SELECT id FROM students WHERE last=$1", array($last));
+        
+    } elseif (!empty($first) && !empty($last)) {
+        $result = queryPostgres("SELECT id FROM students WHERE first=$1 AND last=$2", array($first, $last));
+
+    } else {
+        return NULL;
+    }
+    
+    if (($row = pg_fetch_array($result)) === false) {
+        return NULL;
+    }
+    else {
+        return $row["id"];
+    }
+}
+
+function parseStudentName($fullName, &$first, &$last) {
+    
+    $first = "";
+    $last = "";
+    
+    $parts = preg_split('/\s+/', $fullName);
+    $len = count($parts);
+    if ($len >= 1) {
+        // We consider the last element to be the last name
+        $last = $parts[$len - 1];
+        
+        // And all preceding elements make up the first name
+        for ($i = 0; $i < $len - 1; $i++) {
+            $first .= $parts[$i] . " ";
+        }
+        $first = trim($first);
+    }
 }

@@ -26,7 +26,7 @@
   	   "<li><a href='index.php'>CARDS</a>" .
              "<ul><li><a href='#'>Add new unsold cards</a></li>" .
              "<li><a href='sellCards.php'>Sell cards to students</a></li>" .
-             "<li><a href='#'>Edit cards</a></li>" .
+             "<li><a href='cardData.php'>Edit cards</a></li>" .
              "</ul></li>" .
            "<li><a href='index.php'>STUDENTS</a>" .
              "<ul><li><a href='studentData.php'>Edit students</a></li>" .

@@ -267,12 +267,11 @@ li a:hover, .button:hover {
     margin-right: 40px
 }
 
-/* autocomplete */
-
-/*#student {
-	width: 200px;
-	font-size: 1em;
-}*/
+div.container {
+    overflow: hidden;
+    width: 1500px;
+    margin: 60px auto 0px auto;
+}
 
 .searchresults {
         display: none;

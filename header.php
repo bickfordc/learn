@@ -24,7 +24,7 @@
     echo "<div class='navigation'>" .
          "<ul class='nav'>"         .
   	   "<li><a href='index.php'>CARDS</a>" .
-             "<ul><li><a href='#'>Add new unsold cards</a></li>" .
+             "<ul><li><a href='newCards.php'>Add new unsold cards</a></li>" .
              "<li><a href='sellCards.php'>Sell cards to students</a></li>" .
              "<li><a href='cardData.php'>Edit cards</a></li>" .
              "</ul></li>" .
@@ -35,8 +35,7 @@
              "<ul><li><a href='reloads.php'>Record monthly card reloads</a></li>" .
              "</ul></li>" .
   	   "<li style='float: right'><a href='#'>$user</a>"  .
-  	     "<ul><li><a href='#'>Edit Profile</a></li>" .
-             "<li><a href='changePassword.php'>Change Password</a></li>" .
+             "<ul><li><a href='changePassword.php'>Change Password</a></li>" .
              "<li><a href='logout.php'>Logout</a></li></ul></li>" .
   	 "</ul>" .
          "</div>";

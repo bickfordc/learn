@@ -2,67 +2,72 @@
 
     require_once 'header.php';
     
-    $pageMsg;
+    $successMsg;
+    $errorMsg;
+    $formError;
+    $numCardsAdded;
     
-    if ($_FILES)  
-    {    
-        $name = $_FILES['filename']['tmp_name']; 
+    if ($_FILES)  {    
         
-        $type = $_FILES['filename']['type'];
-        if ($type != "text/csv" && $type != "application/vnd.ms-excel")
-        {
-            echo "That file type was $type, not text/csv.";
-            exit();
-        }
-                  
-        $file = fopen($name, "r");
-        if ($file == NULL)
-        {
-            die("Could not open file $name");
-        }
- 
-        $firstLine = true;
-        
-        $cards = array();
-        $error = "";
-        while (!feof($file))
-        {
-            $row = fgetcsv($file, 300, ",");
-              
-            $cardNumber = $row[0];
-            
-            if ($cardNumber == NULL) {
-                continue;
+        try {
+            $name = $_FILES['filename']['tmp_name']; 
+            if (empty($name)) {
+                throw new Exception("Please select a file.");
             }
-            
-            // strip anything but digits
-            $strippedCardNumber = preg_replace("/[^0-9]/", "", $cardNumber);
-            if (strlen($strippedCardNumber) != 19) {
-                $error = "Card number " . $cardNumber . " is invalid. Card numbers must have 19 digits.";
-                break;
+
+            $type = $_FILES['filename']['type'];
+            if ($type != "text/csv" && $type != "application/vnd.ms-excel" && $type != "text/plain")
+            {
+                throw new Exception("That file type was $type, not text/csv.");
             }
-            
-           if (calculateCardType($strippedCardNumber) == NULL) {
-                $error = "Card number " . $cardNumber . " is invalid. King Soopers cards begin with 6006,"
-                        . " and Safeway cards begin with 6039.";
+
+            $file = fopen($name, "r");
+            if ($file == NULL)
+            {
+                throw new Exception("Could not open file $name");
             }
-            
-            $cards[] = $strippedCardNumber;
+
+            $cards = array();
+            while (!feof($file))
+            {
+                $row = fgetcsv($file, 300, ",");
+
+                $cardNumber = $row[0];
+
+                if ($cardNumber == NULL) {
+                    continue;
+                }
+
+                // strip anything but digits
+                $strippedCardNumber = preg_replace("/[^0-9]/", "", $cardNumber);
+                if (strlen($strippedCardNumber) != 19) {
+                    throw new Exception("Card number " . $cardNumber . " is invalid. Card numbers must have 19 digits.");
+                    break;
+                }
+
+               if (calculateCardType($strippedCardNumber) == NULL) {
+                    throw new Exception("Card number " . $cardNumber . " is invalid. King Soopers cards begin with 6006,"
+                            . " and Safeway cards begin with 6039.");
+                }
+
+                $cards[] = $strippedCardNumber;
+            }
+            fclose($file);
+
+            $numCardsAdded = commitCards($cards);
+            $successMsg = "Successfully addded " . $numCardsAdded . " cards.";            
+        } 
+        catch(Exception $e) {
+            $errorMsg = $e->getMessage() . "<br>" . "No cards were added.";
         }
-        fclose($file);
-            
-        $isSold = 'f';
-        foreach ($cards as $card) {
-            
-            $donorCode = calculateCardType($card);
-            $formattedCardNumber = formatCardNumber($card, $donorCode);
-            
-            queryPostgres("INSERT INTO cards (id, sold, donor_code) VALUES ($1, $2, $3)",
-                    array($formattedCardNumber, $isSold, $donorCode));
-        }
-               
     } 
     
+    if (!empty($errorMsg)) {
+        echo "<p class='errorMessage pageMessage'>$errorMsg</p>";
+    }
+    else if (!empty($successMsg)) {
+        echo "<p class='successMessage pageMessage'>$successMsg</p>";
+    }
     
     echo <<<_END
     <div class="container">
@@ -80,6 +85,7 @@
         <div style="float:left;width:467px;height:423px;margin:10px"> 
           <div class="form" >
             <p style="text-align:center">Select the .csv file</p>
+            <p class='error'>$formError</p>
             <form method='post' action='newCards.php' enctype='multipart/form-data'>    
               <input type='file' name='filename' size='10'>    
               <button type='submit'>Upload</button>   
@@ -93,10 +99,10 @@ _END;
         
         $cardType = NULL;
         
-        if (substr($strippedCardNumber, 0, 4) == "6006") {
+        if (substr($cardNumber, 0, 4) == "6006") {
                 $cardType = "KS";  
         }
-        elseif (substr($strippedCardNumber, 0, 4) == "6039") {
+        elseif (substr($cardNumber, 0, 4) == "6039") {
                 $cardType = "SW";  
         }
         
@@ -123,6 +129,36 @@ _END;
         }
          
         return $formattedCardNumber;  
+    }
+    
+    function commitCards($cards) {
+        
+        $numCardsAdded = 0;
+        $isSold = 'f';
+        
+        if (!pg_query("BEGIN")) {
+            throw new Exception(pg_last_error());
+        }
+        
+        foreach ($cards as $card) {
+
+            $donorCode = calculateCardType($card);
+            $formattedCardNumber = formatCardNumber($card, $donorCode);
+
+            if (!pg_query_params("INSERT INTO cards (id, sold, donor_code) VALUES ($1, $2, $3)",
+                    array($formattedCardNumber, $isSold, $donorCode))) {
+                
+                $error = pg_last_error();
+                pg_query("ROLLBACK");
+                throw new Exception($error);
+            }
+            $numCardsAdded++;
+        }
+        if (!pg_query("COMMIT")) {
+            throw new Exception(pg_last_error());
+        }
+        
+        return $numCardsAdded;
     }
 ?>
 

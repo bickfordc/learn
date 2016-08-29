@@ -71,9 +71,14 @@ li a:hover, .button:hover {
   color:green;
 }
 
-.whisper {
-  font-style:italic;
-  color     :#006600;
+p.errorMessage::before {
+    content: "\2718   ";
+    color: red;
+}
+
+p.successMessage::before {
+    content: "\2714   ";
+    color: green;
 }
 
 #logo {

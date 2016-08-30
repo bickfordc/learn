@@ -74,12 +74,21 @@
         <div style="float:left;margin:10px">
           <img src='img/excel-example.png'>
         </div>
-        <div style="float:left;width:467px;height:423px;margin:10px"> 
+        <div style="float:left;width:467px;height:823px;margin:10px"> 
           <p>To add new cards in bulk, use Excel to create a single column of 
              card numbers as shown on the left. Save the file as 
              CSV (Comma delimited) (*.csv)<br><br>
-             You may also use any text editor and place one card number on each 
-             line. Save the file as .csv
+             Excel has an annoying habit of changing any string of digits with 
+             more than 12 digits to scientific notation. To avoid this, add a space
+             after the 12th digit of a Safeway card number like this;<br>
+             603953500106 2607985<br><br>
+             With King Soopers cards, you can enter them with spaces just as they 
+             appear on the card like this;<br>
+             6006495903 177 095 385<br><br>
+             Regardless of how you enter the numbers, the card numbers will be added
+             to the database with spaces as shown above.<br><br>
+             Instead of Excel, you may also use any text editor and place one card number 
+             on each line. Save the file as .csv
           </p>
         </div>
         <div style="float:left;width:467px;height:423px;margin:10px"> 

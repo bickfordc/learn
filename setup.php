@@ -63,7 +63,7 @@ EOF;
     
     $sql =<<<EOF
     CREATE TABLE IF NOT EXISTS cards
-      (id varchar(20) PRIMARY KEY,
+      (id varchar(30) PRIMARY KEY,
        sold boolean DEFAULT FALSE,
        card_holder varchar(80),
        notes varchar(80),
@@ -77,7 +77,7 @@ EOF;
     $sql =<<<EOF
     CREATE TABLE IF NOT EXISTS student_cards
       (student integer REFERENCES students (id),
-       card varchar(20) REFERENCES cards (id),
+       card varchar(30) REFERENCES cards (id),
        PRIMARY KEY (student, card)
       );           
 EOF;

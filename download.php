@@ -9,6 +9,11 @@ if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
     $isWindows = true;
 } 
 
+$options = array(
+    'orientation' => 'landscape'
+    );
+
+
 if ($isWindows) {
     
     $pdf = new Pdf([
@@ -19,11 +24,13 @@ if ($isWindows) {
     
     $pdf->binary = 'c:\program files\wkhtmltopdf\bin\wkhtmltopdf';
     $pdf->addPage('C:\Bitnami\wappstack-5.6.24-0\apache2\htdocs\boosters\pdfsrc.html');
+    $pdf->setOptions(array( 'orientation' => 'landscape' ));
     $pdf->send('Boosters rebate report.pdf');
 } 
 else {
     $pdf = new Pdf();
     $pdf->addPage('pdfsrc.html');
+    $pdf->setOptions(array( 'orientation' => 'landscape' ));
     $pdf->send('Boosters rebate report.pdf');
 }
 

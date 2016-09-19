@@ -13,10 +13,14 @@
     ini_set("auto_detect_line_endings", true);
     
     //error_reporting(E_ALL);
+    //error_reporting(E_ERROR);
+    //ini_set('display_errors', 'On');
+    //set_time_limit ( 30 );
     
     $fatalError = false;
     $reportComplete = false;
     $names = array();
+    $pageMsg = "";
     
     if ($_FILES)  
     {   
@@ -118,7 +122,8 @@
 
             if ($reportComplete === true)
             {
-                file_put_contents("pdfsrc.html", $report->getTable(true));
+                //file_put_contents("pdfsrc.html", $report->getTable(true));  // CEB isForPdf
+                file_put_contents("pdfsrc.html", $report->getTable());
                 
                 echo "<div class='tile_div'>" .
                      "<button class='styleButton' id='pdf'>Download as .PDF file</button>" .
@@ -234,6 +239,7 @@
                 }
                 $transactDate = $row[0];
                 $cardNumber = $row[1];
+                //$cardNumber = modifyKingSoopersCardNumber($row[1]);
                 if ($cardNumber == "")
                 {
                     // Ignore any line without a card number
@@ -320,7 +326,6 @@
         return $scripFamilies;
     }
     
-    // idea for later.  student_scripfamily table. Each student may have multiple scrip families.
     function getCardData($cardTotals, &$cardsNotFound, &$soldCardTotal, &$unsoldCardTotal)
     {
         $cards = array();
@@ -526,6 +531,34 @@
             $prefix = substr($cardNumber, 0, 12);
             $suffix = substr($cardNumber, 12);
             $modifiedCardNumber = $prefix . " " . $suffix;
+        }
+        
+        return $modifiedCardNumber;
+    }
+    
+    /* 
+     * King Soopers cards are 19 digits (really text) and are written on the card 
+     * with spaces like so;  6006495903 177 095 385
+     * For some reason however, in the monthly transaction report, they send us 
+     * just the last 11 digits of the number, formatted differently with dashes
+     * added, like this; 03-1770-9538-5
+     * Presumably then, all KS cards must begin with a prefix of 60064959.
+     * Add the prefix, remove the dashes, and add spacing to match how the number 
+     * is presented on the card (which is also how we have it stored in the database)
+     */
+    function modifyKingSoopersCardNumber($cardNumber) 
+    {
+        $modifiedCardNumber = $cardNumber;
+        
+        // strip everything but digits
+        $strippedCardNumber = preg_replace("/[^0-9]/", "", $cardNumber);
+        
+        // Add the prefix 
+        $strippedCardNumber = "60064959" . $strippedCardNumber;
+        
+        if (strlen($strippedCardNumber) == 19) 
+        {
+            $modifiedCardNumber = formatCardNumber($strippedCardNumber, "KS");
         }
         
         return $modifiedCardNumber;

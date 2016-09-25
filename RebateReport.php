@@ -68,7 +68,7 @@ class RebateReport {
     }
 
     td {
-        font-size: 14px;
+        font-size: 10px;
         padding: 10px 5px;
 /*        border-style: solid;
         border-width: 0px; */
@@ -76,7 +76,7 @@ class RebateReport {
     }
 
     th {
-        font-size: 14px;
+        font-size: 10px;
         font-weight: normal;
         padding: 10px 5px;
  /*       border-style: solid;

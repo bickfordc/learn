@@ -22,9 +22,9 @@ if ($isWindows) {
     
     $options = array(
         'orientation' => 'landscape',
-        'disable-smart-shrinking',
-        'user-style-sheet' => 'css/rebateReport.css',
+        'disable-smart-shrinking',  
     );
+    //'user-style-sheet' => 'css/rebateReport.css',
     
     $pdf->setOptions($options);
     $pdf->send('Boosters rebate report.pdf');
@@ -36,7 +36,7 @@ else {
     $options = array(
         'orientation' => 'landscape',
         'disable-smart-shrinking',
-        'user-style-sheet' => 'css/rebateReport.css',
+//        'user-style-sheet' => 'css/rebateReport.css',
     );
     
     $pdf->setOptions($options);

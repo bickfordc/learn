@@ -239,7 +239,7 @@
                 }
                 $transactDate = $row[0];
                 $cardNumber = $row[1];
-                //$cardNumber = modifyKingSoopersCardNumber($row[1]);
+                $cardNumber = modifyKingSoopersCardNumber($row[1]);
                 if ($cardNumber == "")
                 {
                     // Ignore any line without a card number

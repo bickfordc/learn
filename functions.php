@@ -94,4 +94,28 @@
         
         return $passwordChanged;
     }
+    
+    function formatCardNumber($cardNumber, $cardType) 
+    {
+
+        $formattedCardNumber = $cardNumber;
+
+        // Format King Soopers cards as 10 digits, space, 3 digits, space, 3 digits, space, 3 digits
+        // 6006495903 177 095 385
+        if ($cardType == "KS") {
+            $formattedCardNumber = substr($cardNumber, 0, 10) . " " .
+                                   substr($cardNumber, 10, 3) . " " .
+                                   substr($cardNumber, 13, 3) . " " .
+                                   substr($cardNumber, 16, 3);
+        }
+        // Format Safeway cards as 12 digits, space, 7 digits
+        // 603953500106 5471470
+        elseif ($cardType == "SW") {
+            $formattedCardNumber = substr($cardNumber, 0, 12) . " " .
+                                   substr($cardNumber, 12, 7);
+        }
+
+        return $formattedCardNumber;  
+    }
+    
 ?>

@@ -18,7 +18,7 @@ if ($isWindows) {
     ]);
     
     $pdf->binary = 'c:\program files\wkhtmltopdf\bin\wkhtmltopdf';
-    $pdf->addPage('C:\Bitnami\wappstack-5.6.24-0\apache2\htdocs\boosters\pdfsrc.html');
+    $pdf->addPage('C:\Bitnami\wappstack-7.0.11-0\apache2\htdocs\boosters\pdfsrc.html');
     
     $options = array(
         'orientation' => 'landscape',

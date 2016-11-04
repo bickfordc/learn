@@ -21,12 +21,11 @@
     $reportComplete = false;
     $names = array();
     $pageMsg = "";
+    $skip = array();
     
     if ($_FILES)  
     {   
         //print_r($_FILES);
-        
-        
         $tmpNames = array();
         $types = array();
         $messages = array();
@@ -35,8 +34,10 @@
         for ($i = 0; $i <= 2; $i++) 
         {
             $messages[$i] = "OK";
+            
             if ($_FILES['file']['error'][$i] === UPLOAD_ERR_OK)
             {
+                $skip[$i] = false;
                 $names[$i]    = $_FILES['file']['name'][$i];
                 $tmpNames[$i] = $_FILES['file']['tmp_name'][$i];
                 $types[$i]    = $_FILES['file']['type'][$i];
@@ -66,9 +67,15 @@
                     }
                 }
             }
-            else
+            else if ($_FILES['file']['error'][$i] === UPLOAD_ERR_NO_FILE)
             {
-                $messages[$i] = "File not uploaded.";
+                // It's ok to leave out file(s) and run the report with only one or two input files.
+                $skip[$i] = true;
+                $names[$i] = "Not reported";
+            }
+            else 
+            {
+                $messages[$i] = "File array error " . $_FILES['file']['error'][$i];
                 $uploadError = true; 
             }
         }
@@ -81,19 +88,28 @@
         }
         else
         {
-            $ksCardTotals = processKingSoopers($tmpNames[0]);
-            $ksCardsNotFound = array();
-            $ksSoldCardTotal = 0;
-            $ksUnsoldCardTotal = 0;
-            $ksCardData = getCardData($ksCardTotals, $ksCardsNotFound, $ksSoldCardTotal, $ksUnsoldCardTotal);
-                      
-            $swCardTotals = processSafeway($tmpNames[1]);
-            $swCardsNotFound = array();
-            $swSoldCardTotal = 0;
-            $swUnsoldCardTotal = 0;
-            $swCardData = getCardData($swCardTotals, $swCardsNotFound, $swSoldCardTotal, $swUnsoldCardTotal);
+            if (!$skip[0])
+            {
+                $ksCardTotals = processKingSoopers($tmpNames[0]);
+                $ksCardsNotFound = array();
+                $ksSoldCardTotal = 0;
+                $ksUnsoldCardTotal = 0;
+                $ksCardData = getCardData($ksCardTotals, $ksCardsNotFound, $ksSoldCardTotal, $ksUnsoldCardTotal);
+            }
             
-            $scripFamilies = processScrip($tmpNames[2]);
+            if (!$skip[1])
+            {
+                $swCardTotals = processSafeway($tmpNames[1]);
+                $swCardsNotFound = array();
+                $swSoldCardTotal = 0;
+                $swUnsoldCardTotal = 0;
+                $swCardData = getCardData($swCardTotals, $swCardsNotFound, $swSoldCardTotal, $swUnsoldCardTotal);
+            }
+            
+            if (!$skip[2])
+            {
+                $scripFamilies = processScrip($tmpNames[2]);
+            }
             
             $rebatePercentages = new RebatePercentages(
                     $ksSoldCardTotal + $ksUnsoldCardTotal,

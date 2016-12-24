@@ -28,6 +28,16 @@ $(function () {
         caption: "Students",
         height: "auto",
         autowidth: true,
+        subGrid: true,
+        subGridUrl: "getStudentCards.php",
+        subGridModel: [
+            {
+                name: ["Cards"],
+                width: [80],
+                align: ["left"]
+                //params: ["id"]
+            }
+        ],
         loadError: function(jqXHR, textStatus, errorThrown) {
                alert('HTTP status code: ' + jqXHR.status + '<br>' +
               'textStatus: ' + textStatus + '<br>' +

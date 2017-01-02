@@ -60,7 +60,11 @@ else
 
     $where = getWhereClause();
     
-    $sql = "SELECT id, sold, card_holder, notes, active, donor_code FROM cards $where ORDER BY $sidx $sord OFFSET $start LIMIT $limit";
+    //$sql = "SELECT id, sold, card_holder, notes, active, donor_code FROM cards $where ORDER BY $sidx $sord OFFSET $start LIMIT $limit";
+    $sql = "SELECT c.id, c.sold, c.card_holder, c.notes, c.active, c.donor_code, s.first, s.last FROM cards c "
+            . "LEFT JOIN student_cards sc ON sc.card=c.id "
+            . "LEFT JOIN students s ON sc.student=s.id "
+            . "ORDER BY $sidx $sord OFFSET $start LIMIT $limit";
     $result = queryPostgres($sql, array());
 
     // Set the appropriate header information. 
@@ -83,6 +87,8 @@ else
         $active = $row['active'] == 't' ? "true" : "false";
         $s .= "<cell>".$active."</cell>";
         $s .= "<cell>". $row['donor_code']."</cell>";
+        $s .= "<cell>". $row['first']."</cell>";  // CEB
+        $s .= "<cell>". $row['last']."</cell>";  // CEB
         $s .= "</row>";
     }
     $s .= "</rows>"; 

@@ -64,7 +64,8 @@ else
     $sql = "SELECT c.id, c.sold, c.card_holder, c.notes, c.active, c.donor_code, s.first, s.last FROM cards c "
             . "LEFT JOIN student_cards sc ON sc.card=c.id "
             . "LEFT JOIN students s ON sc.student=s.id "
-            . "ORDER BY $sidx $sord OFFSET $start LIMIT $limit";
+            . $where
+            . " ORDER BY $sidx $sord OFFSET $start LIMIT $limit";
     $result = queryPostgres($sql, array());
 
     // Set the appropriate header information. 
@@ -129,6 +130,10 @@ function getWhereClause() {
     $where = "";
     if ($_GET['_search'] === "true") {
         $searchCol = $_GET['searchField'];
+        // id is ambiguous since we have card id and student id
+        if ($searchCol == "id") {
+            $searchCol = "c.id";
+        }
         $searchQuery = $_GET['searchString'];
         $searchOp = $_GET['searchOper'];
         $where = "WHERE ";

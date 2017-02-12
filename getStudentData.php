@@ -4,13 +4,14 @@
 // 
 require_once 'functions.php';
  
-// to the url parameter are added 4 parameters as described in colModel
-// we should get these parameters to construct the needed query
+// Four parameters are added to the url as described in colModel.
+// Get these parameters to construct the needed query.
 // Since we specify in the options of the grid that we will use a GET method 
 // we should use the appropriate command to obtain the parameters. 
 // In our case this is $_GET. If we specify that we want to use post 
 // we should use $_POST. Maybe the better way is to use $_REQUEST, which
 // contain both the GET and POST variables. For more information refer to php documentation.
+
 // Get the requested page. By default grid sets this to 1. 
 $page = $_GET['page'];
  
@@ -24,7 +25,7 @@ $sidx = $_GET['sidx'];
 // sorting order - At first this will be sortorder parameter
 $sord = $_GET['sord'];
  
-// if we didn't get an column index to sort on,
+// if we didn't get a column index to sort on,
 // sort on last name;
 if(!$sidx) $sidx = "last"; 
 
@@ -36,22 +37,6 @@ if (!validate($page, $limit, $sidx, $sord, $error))
 }
 else
 {
-    // calculate the number of rows for the query. We need this for paging the result 
-    $result = queryPostgres("SELECT COUNT(*) AS count FROM students", array()); 
-    $row = pg_fetch_array($result); 
-    $count = $row['count']; 
-
-    // calculate the total pages for the query 
-    if( $count > 0 && $limit > 0) { 
-        $total_pages = ceil($count/$limit); 
-    } else { 
-        $total_pages = 0; 
-    } 
-
-    // if the requested page is greater than the total, 
-    // set the requested page to total pages 
-    if ($page > $total_pages) $page=$total_pages;
-
     // calculate the starting position of the rows 
     $start = $limit*$page - $limit;
 
@@ -62,10 +47,23 @@ else
     
     $sql = "SELECT id, first, last, active FROM students $where ORDER BY $sidx $sord OFFSET $start LIMIT $limit";
     $result = queryPostgres($sql, array());
+    
+    $countResult = queryPostgres("SELECT id, first, last, active FROM students $where", array());
+    $count = pg_num_rows($countResult);
+    
+    if( $count > 0 && $limit > 0) { 
+        $total_pages = ceil($count/$limit); 
+    } else { 
+        $total_pages = 0; 
+    } 
+    
+    // if the requested page is greater than the total, 
+    // set the requested page to total pages 
+    if ($page > $total_pages) $page=$total_pages;
 
     // Set the appropriate header information. 
     header("Content-type: text/xml;charset=utf-8");
-
+    
     $s =  "<?xml version='1.0' encoding='utf-8'?>";
     $s .= "<rows>";
     $s .= "<page>".$page."</page>";

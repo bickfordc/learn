@@ -4,13 +4,9 @@
 // 
 require_once 'functions.php';
  
-// to the url parameter are added 4 parameters as described in colModel
-// we should get these parameters to construct the needed query
-// Since we specify in the options of the grid that we will use a GET method 
-// we should use the appropriate command to obtain the parameters. 
-// In our case this is $_GET. If we specify that we want to use post 
-// we should use $_POST. Maybe the better way is to use $_REQUEST, which
-// contain both the GET and POST variables. For more information refer to php documentation.
+// Four parameters are added to the url as described in colModel.
+// Get these parameters to construct the needed query.
+
 // Get the requested page. By default grid sets this to 1. 
 $page = $_GET['page'];
  
@@ -36,11 +32,26 @@ if (!validate($page, $limit, $sidx, $sord, $error))
 }
 else
 {
-    // calculate the number of rows for the query. We need this for paging the result 
-    $result = queryPostgres("SELECT COUNT(*) AS count FROM cards", array()); 
-    $row = pg_fetch_array($result); 
-    $count = $row['count']; 
-
+    $where = getWhereClause();
+    
+    // Get the count of rows returned by the query so we can calculate total pages.
+    $sql = "SELECT c.id, c.sold, c.card_holder, c.notes, c.active, c.donor_code, s.first, s.last FROM cards c "
+        . "LEFT JOIN student_cards sc ON sc.card=c.id "
+        . "LEFT JOIN students s ON sc.student=s.id ";
+    
+    $countResult = queryPostgres($sql . $where, array());
+    $count = pg_num_rows($countResult);
+    
+    // calculate the starting position of the rows 
+    $start = $limit*$page - $limit;
+   
+    // if start position is negative, set it to 0 
+    if($start <0) $start = 0; 
+    
+    // Perform the same query but with offset and limit so we have just one page of rows.
+    $sql = $sql . $where . " ORDER BY $sidx $sord OFFSET $start LIMIT $limit";
+    $result = queryPostgres($sql , array());
+    
     // calculate the total pages for the query 
     if( $count > 0 && $limit > 0) { 
         $total_pages = ceil($count/$limit); 
@@ -51,22 +62,6 @@ else
     // if the requested page is greater than the total, 
     // set the requested page to total pages 
     if ($page > $total_pages) $page=$total_pages;
-
-    // calculate the starting position of the rows 
-    $start = $limit*$page - $limit;
-
-    // if start position is negative, set it to 0 
-    if($start <0) $start = 0; 
-
-    $where = getWhereClause();
-    
-    //$sql = "SELECT id, sold, card_holder, notes, active, donor_code FROM cards $where ORDER BY $sidx $sord OFFSET $start LIMIT $limit";
-    $sql = "SELECT c.id, c.sold, c.card_holder, c.notes, c.active, c.donor_code, s.first, s.last FROM cards c "
-            . "LEFT JOIN student_cards sc ON sc.card=c.id "
-            . "LEFT JOIN students s ON sc.student=s.id "
-            . $where
-            . " ORDER BY $sidx $sord OFFSET $start LIMIT $limit";
-    $result = queryPostgres($sql, array());
 
     // Set the appropriate header information. 
     header("Content-type: text/xml;charset=utf-8");

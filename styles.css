@@ -52,12 +52,6 @@ li a:hover, .button:hover {
   font-weight:bold;
 }
 
-/*.pageMessage {
-    text-align: center;
-    margin: 100px auto;
-    max-width: 900px;
-}*/
-
 .pageMessage {
     display: table;
     margin: 100px auto;
@@ -88,6 +82,10 @@ p.successMessage::before {
   font-size :97px;
 }
 
+nav{ 
+    white-space: nowrap; 
+}
+
 .nav {
         width: 100%;
         min-width: 900px;
@@ -99,9 +97,9 @@ p.successMessage::before {
 }
 
 .nav li {
-	float: left;
+        display: inline-block;
         margin: auto;
-	width: 300px;
+	width: 400px;
 	position: relative;
         background: linear-gradient(gold, maroon, maroon);
 }
@@ -117,7 +115,7 @@ p.successMessage::before {
 	color: gold;
 }
 
-/*=== submenu ===*/
+/* === submenu === */
 
 .nav ul {
 	display: none;

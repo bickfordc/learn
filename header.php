@@ -21,8 +21,8 @@
 
   if ($loggedin)
   {
-    echo "<div class='navigation'>" .
-         "<ul class='nav'>"         .
+        echo "<nav>" .
+         "<ul class='nav'>" .
   	   "<li><a href='index.php'>CARDS</a>" .
              "<ul><li><a href='newCards.php'>Add new unsold cards</a></li>" .
              "<li><a href='sellCards.php'>Assign a card to a student</a></li>" .
@@ -35,11 +35,10 @@
            "<li><a href='index.php'>REPORTS</a>" .
              "<ul><li><a href='reloads.php'>Record monthly card reloads</a></li>" .
              "</ul></li>" .
-  	   "<li style='float: right'><a href='#'>$user</a>"  .
+  	   "<li><a href='#'>$user</a>"  .
              "<ul><li><a href='changePassword.php'>Change Password</a></li>" .
              "<li><a href='logout.php'>Logout</a></li></ul></li>" .
   	 "</ul>" .
-         "</div>";
-
+         "</nav>";
   }
 ?>

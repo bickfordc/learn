@@ -10,6 +10,7 @@ echo <<<_END
 <script src="js/i18n/grid.locale-en.js" type="text/javascript"></script>
 <script src="js/jquery.jqGrid.min.js" type="text/javascript"></script>
 
+<script src="js/csv.js" type="text/javascript"></script>
 <script src="js/cardGrid.js" type="text/javascript"></script>
     
 <div class="topSpace">

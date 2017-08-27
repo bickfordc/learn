@@ -56,5 +56,13 @@ $(function () {
         {}                                 // modal view   window parameters
     );
     //jQuery("#mysearch").jqGrid('filterGrid','#list',options);
+    
+    // add custom button to export the data to excel
+    $("#list").jqGrid('navButtonAdd','#pager',{
+       caption:"", title:"Export to csv format", 
+       onClickButton : function () { 
+           createCsvFromGrid("list", "students");
+       } 
+    });
 }); 
 

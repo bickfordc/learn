@@ -33,7 +33,7 @@ var createCsvFromGrid = function(gridID, filename) {
     a.href        = 'data:text/csv,' + encodeURIComponent(csvData);
     a.download    = filename ? filename + ".csv" : 'data.csv';
     document.body.appendChild(a);
-    a.click(); // Downloads the excel document
+    a.click(); // Downloads the csv file
     document.getElementById('csvDownload').remove();
 }
 

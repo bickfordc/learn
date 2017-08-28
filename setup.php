@@ -106,6 +106,51 @@ EOF;
     
     postgres_query($sql);
     
+    $sql =<<<EOF
+    CREATE TABLE IF NOT EXISTS ks_card_reloads
+      (card varchar(30),
+       reload_date timestamp,
+       reload_amount money,
+       original_invoice_number varchar(15),
+       original_invoice_date date,
+       PRIMARY KEY (card, reload_date, reload_amount)
+      );      
+EOF;
+    
+    postgres_query($sql);
+    
+    $sql =<<<EOF
+    CREATE TABLE IF NOT EXISTS sw_card_reloads
+      (card varchar(30),
+       reload_date timestamp,
+       reload_amount money,
+       store_number varchar(4),
+       store_location varchar(40),
+       PRIMARY KEY (card, reload_date, reload_amount)
+      );
+EOF;
+    
+    postgres_query($sql);
+    
+    $sql =<<<EOF
+    CREATE TABLE IF NOT EXISTS scrip_orders
+      (scrip_first varchar(32),
+       scrip_last varchar(32),
+       scrip_student_name varchar(40),
+       active boolean DEFAULT TRUE,
+       order_count integer,
+       order_id varchar(15),
+       order_date timestamp,
+       net_value money,
+       net_cost money,
+       payment_type varchar(15),
+       order_status varchar(15),
+       org_fam_active boolean DEFAULT TRUE
+      );
+EOF;
+    
+    postgres_query($sql);
+            
   function postgres_query($sql) {
     $ret = pg_query($sql);
     if(!$ret){

@@ -21,25 +21,28 @@ class RebatePercentages {
     {
         $this->boostersPercentage = 0.40;
         
-        if ($ksSales >= 5000) {
-            $this->ksRebatePercentage = 0.05;
-        } 
-        elseif ($ksSales >= 2500) {
-            $this->ksRebatePercentage = 0.04;
-        }
-        else {
-            $this->ksRebatePercentage = 0.03;
-        }
+        $this->ksRebatePercentage = 0.05;
+        $this->swRebatePercentage = 0.05;
         
-        if ($swSales >= 5000) {
-            $this->swRebatePercentage = 0.05;
-        } 
-        elseif ($swSales >= 2500) {
-            $this->swRebatePercentage = 0.04;
-        }
-        else {
-            $this->swRebatePercentage = 0.03;
-        }
+//        if ($ksSales >= 5000) {
+//            $this->ksRebatePercentage = 0.05;
+//        } 
+//        elseif ($ksSales >= 2500) {
+//            $this->ksRebatePercentage = 0.04;
+//        }
+//        else {
+//            $this->ksRebatePercentage = 0.03;
+//        }
+//        
+//        if ($swSales >= 5000) {
+//            $this->swRebatePercentage = 0.05;
+//        } 
+//        elseif ($swSales >= 2500) {
+//            $this->swRebatePercentage = 0.04;
+//        }
+//        else {
+//            $this->swRebatePercentage = 0.03;
+//        }
     }
     
     public function getKsRebatePercentage() {
